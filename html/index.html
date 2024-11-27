@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="">
+    <link rel="icon" type="image/x-icon" href="">
+    <title>Progo</title>
+    <style>   
+        .main-nav{
+            display: flex;
+            gap: 25px
+        }
+
+    </style>
+</head>
+<body>
+
+    <!----------------------------------MAIN NAVIGATIONAL BAR---------------------------------->
+    <header>
+        <!-- Page logo -->
+        <img id="icon" src="#" alt="Page Logo">     
+
+        <nav class="main-nav">
+            <!-- This is section for menu and create button -->
+            <div> 
+                <!-- Recent section -->
+                <div class="recent-menu">
+                    <a><strong>Recent</strong></a>
+                    <div class="dropdown-content" onclick="">
+                        <div class="recent-board-container"></div>                       
+                    </div>
+                </div>    
+
+                <!-- Create button -->
+                <div class="create-board">
+                    <button type="button" id="create-btn" onclick="">
+                        <p>Create</p>
+                    </button>
+                </div>
+            </div> 
+            
+            <div>
+                <!-- Search bar -->
+                <div class="search-container">
+                    <div class="search-bar">
+                        <input type="text" id="search" placeholder="Search">
+                        <!-- Put an icon here -->
+                    </div>
+                </div>
+                
+                <!-- Notify -->
+                <div class="notification-icon">
+                    
+                </div>
+
+                <!-- User account -->
+                <div class="account">
+                    <img src="#" alt="User Account">
+                </div>
+            </div>
+        </nav>    
+            
+        
+    </header>
+
+    <!----------------------------------MAIN CONTENT---------------------------------->
+    <main>
+
+    </main>
+
+
+    <script src="/js/script.js"></script>
+</body>
+</html>
