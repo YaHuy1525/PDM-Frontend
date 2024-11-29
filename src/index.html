@@ -3,47 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Todo List</title>
-    <style>
-        .error-message {
-            color: red;
-            display: none;
-            padding: 10px;
-            margin: 10px 0;
-            background-color: #ffe6e6;
-            border: 1px solid red;
-        }
-
-        .loading {
-            display: none;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .todo-item {
-            border: 1px solid #ddd;
-            padding: 10px;
-            margin: 5px 0;
-        }
-
-        .completed {
-            background-color: #e8ffe8;
-            text-decoration: line-through;
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <title>My Todo</title>
+    <link rel="icon" href="myTodoIcon.webp" type="image/x-icon">
 </head>
 <body>
-    <div id="error-message" class="error-message"></div>
-    <div id="loading" class="loading">Loading...</div>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <button class="menu-toggle"><i class="fas fa-bars"></i></button>
+                <button class="settings-btn"><i class="fas fa-cog"></i></button>
+            </div>
 
-    <form id="todo-form">
-        <input type="text" id="todo-title" placeholder="Todo title" required>
-        <textarea id="todo-description" placeholder="Description"></textarea>
-        <button type="submit">Add Todo</button>
-    </form>
+            <!-- User Section -->
+            <div class="user-section">
+                <i class="fas fa-user"></i>
+                <span>Username</span>
+            </div>
 
-    <div class="todo-list"></div>
+            <!-- Navigation -->
+            <nav class="sidebar-nav">
+                <!-- All Todos -->
+                <div class="nav-section">
+                    <ul>
+                        <li>
+                            <a href="#" class="nav-item" data-view="all">
+                                <i class="fas fa-list"></i>
+                                <span>All Todos</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
 
-    <script src="bundle.js"></script>
+                <!-- Timeline -->
+                <div class="nav-section">
+                    <h3>Timeline</h3>
+                    <ul>
+                        <li>
+                            <a href="#" class="nav-item" data-view="today">
+                                <i class="far fa-calendar-day"></i>
+                                <span>Today</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-item" data-view="week">
+                                <i class="far fa-calendar-week"></i>
+                                <span>This Week</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-item" data-view="month">
+                                <i class="far fa-calendar"></i>
+                                <span>This Month</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Categories -->
+                <div class="nav-section">
+                    <h3>Categories</h3>
+                    <ul>
+                        <li>
+                            <a href="#" class="nav-item" data-category="work">
+                                <i class="fas fa-briefcase"></i>
+                                <span>Work</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-item" data-category="study">
+                                <i class="fas fa-book"></i>
+                                <span>Study</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-item" data-category="personal">
+                                <i class="fas fa-home"></i>
+                                <span>Personal</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Add Todo Button -->
+            <div class="add-todo-section">
+                <button id="add-todo-btn">
+                    <i class="fas fa-plus"></i>
+                    <span>Add New Todo</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="main-header">
+                <div class="header-title">
+                    <i class="fas fa-clipboard-list"></i>
+                    <h1>My Todo</h1>
+                </div>
+            </header>
+
+            <!-- Task List Container -->
+            <div class="todo-list-container">
+                <div id="task-list" class="todo-list">
+                    <!-- Tasks will be populated here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Todo Modal -->
+    <div id="todo-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Task Details</h2>
+                <button class="close-modal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <!-- Modal content will be populated by todoDetails.js -->
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="index.js"></script>
 </body>
 </html>

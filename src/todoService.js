@@ -1,69 +1,125 @@
-import axios from 'axios'
-
 class TodoService {
-    static baseURL = 'http://localhost:8080/api/todos';
+    constructor() {
+        this.baseUrl = 'http://localhost:8080/api';
+    }
 
-    static async getAllTodos() {
+    // Task methods
+    async getAllTasks(boardId = null) {
         try {
-            const response = await fetch(this.baseURL);
-            if (!response.ok) throw new Error('Network response error');
+            const url = boardId ? 
+                `${this.baseUrl}/boards/${boardId}/tasks` : 
+                `${this.baseUrl}/tasks`;
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             return await response.json();
         } catch (error) {
-            console.error('Error fetching todos:', error);
+            console.error('Error fetching tasks:', error);
             throw error;
         }
     }
 
-    static async addTodo(todo) {
+    async createTask(task) {
         try {
-            const response = await fetch(this.baseURL, {
+            const response = await fetch(`${this.baseUrl}/tasks`, {
                 method: 'POST',
-                headers: {
+                headers: { 
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json'
                 },
-                body: JSON.stringify({
-                    title: todo.title,
-                    description: todo.description || '',
-                    completed: todo.completed || false,
-                }),
+                body: JSON.stringify(task)
             });
-            if (!response.ok) throw new Error('Network response was not ok');
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             return await response.json();
         } catch (error) {
-            console.error('Error adding todo:', error);
+            console.error('Error creating task:', error);
             throw error;
         }
     }
 
-    static async updateTodo(id, todo) {
+    async updateTask(taskId, task) {
         try {
-            const response = await fetch(`${this.baseURL}/${id}`, {
+            const response = await fetch(`${this.baseUrl}/tasks/${taskId}`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(todo),
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(task)
             });
-            if (!response.ok) throw new Error('Network response was not ok');
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             return await response.json();
         } catch (error) {
-            console.error('Error updating todo:', error);
+            console.error('Error updating task:', error);
             throw error;
         }
     }
 
-    static async deleteTodo(id) {
+    async deleteTask(taskId) {
         try {
-            const response = await fetch(`${this.baseURL}/${id}`, {
-                method: 'DELETE',
+            const response = await fetch(`${this.baseUrl}/tasks/${taskId}`, {
+                method: 'DELETE'
             });
-            if (!response.ok) throw new Error('Network response was not ok');
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             return true;
         } catch (error) {
-            console.error('Error deleting todo:', error);
+            console.error('Error deleting task:', error);
+            throw error;
+        }
+    }
+
+    // Board methods
+    async getBoards() {
+        try {
+            const response = await fetch(`${this.baseUrl}/boards`);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching boards:', error);
+            throw error;
+        }
+    }
+
+    async createBoard(board) {
+        try {
+            const response = await fetch(`${this.baseUrl}/boards`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(board)
+            });
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return await response.json();
+        } catch (error) {
+            console.error('Error creating board:', error);
+            throw error;
+        }
+    }
+
+    async getLabels() {
+        try {
+            const response = await fetch(`${this.baseUrl}/labels`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching labels:', error);
+            throw error;
+        }
+    }
+
+    async createLabel(label) {
+        try {
+            const response = await fetch(`${this.baseUrl}/labels`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(label)
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Error creating label:', error);
             throw error;
         }
     }
 }
 
-export default TodoService;
+export default new TodoService();
