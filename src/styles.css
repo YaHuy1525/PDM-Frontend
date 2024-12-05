@@ -195,8 +195,9 @@ li input[type="checkbox"] {
   background-color: #66cc66;
 }
 
-/* Todo Modal */
+/* Modal Styles */
 .modal {
+    display: flex;
     position: fixed;
     z-index: 1000;
     left: 0;
@@ -204,7 +205,6 @@ li input[type="checkbox"] {
     width: 100%;
     height: 100%;
     background-color: rgba(0,0,0,0.4);
-    display: flex;
     align-items: center;
     justify-content: center;
 }
@@ -215,6 +215,34 @@ li input[type="checkbox"] {
     border-radius: 8px;
     width: 500px;
     max-width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: bold;
+}
+
+.form-group input[type="text"],
+.form-group input[type="date"],
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.form-group textarea {
+    min-height: 60px;
+    resize: vertical;
 }
 
 .title-input {
@@ -224,33 +252,7 @@ li input[type="checkbox"] {
     outline: none;
     border-bottom: 1px solid #ddd;
     padding: 8px 0;
-}
-
-.form-group {
-    margin-bottom: 15px;
-}
-
-.form-row {
-    display: flex;
-    gap: 20px;
-}
-
-.form-row > div {
-    flex: 1;
-}
-
-.form-group input[type="date"],
-.form-group select,
-.form-group textarea {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
-.form-group textarea {
-    min-height: 60px;
-    resize: vertical;
+    margin-bottom: 16px;
 }
 
 .modal-buttons {
@@ -260,117 +262,36 @@ li input[type="checkbox"] {
     margin-top: 20px;
 }
 
-.save-btn {
+.modal-buttons button {
     padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: opacity 0.2s;
+}
+
+.modal-buttons button:hover {
+    opacity: 0.9;
+}
+
+.save-btn {
     background: #4CAF50;
     color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
 }
 
 .cancel-btn {
-    padding: 8px 16px;
     background: #f44336;
     color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
 }
 
-.save-btn:hover {
-    background: #45a049;
-}
-
-.cancel-btn:hover {
-    background: #da190b;
-}
-
-/* Modal styles */
-.modal-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+.flex-row {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
+    gap: 20px;
 }
 
-.modal-content {
-    background-color: white;
-    padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 500px;
-}
-
-.modal-content h2 {
-    margin-top: 0;
-    margin-bottom: 1.5rem;
-    color: #333;
-}
-
-.form-group {
-    margin-bottom: 1rem;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    color: #666;
-}
-
-.form-group input,
-.form-group textarea,
-.form-group select {
-    width: 100%;
-    padding: 0.5rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 1rem;
-}
-
-.form-group textarea {
-    min-height: 100px;
-    resize: vertical;
-}
-
-.modal-buttons {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-    margin-top: 1.5rem;
-}
-
-.modal-buttons button {
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1rem;
-}
-
-.cancel-btn {
-    background-color: #f0f0f0;
-    color: #666;
-}
-
-.save-btn {
-    background-color: #007bff;
-    color: white;
-}
-
-.cancel-btn:hover {
-    background-color: #e0e0e0;
-}
-
-.save-btn:hover {
-    background-color: #0056b3;
+.flex-row > * {
+    flex: 1;
 }
 
 /* Media queries */

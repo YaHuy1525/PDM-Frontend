@@ -37,13 +37,7 @@ export function showNewTodoModal() {
                         <option value="high">High</option>
                     </select>
                 </p>
-                <p><strong>Category: </strong>
-                    <select class="todo-category" disabled>
-                        <option value="work">Work</option>
-                        <option value="study">Study</option>
-                        <option value="personal">Personal</option>
-                    </select>
-                </p>
+                <p><strong>Board: </strong><span class="todo-board" contenteditable="false"></span></p>
                 <p><strong>Notes: </strong><span class="todo-notes" contenteditable="false"></span></p>
             </div>
         </div>
@@ -95,11 +89,11 @@ export function showNewTodoModal() {
     };
 }
 
-export function showAddTodoModal() {
+export function showAddTodoModal(boards = []) {
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.style.cssText = `
-        display: block;
+        display: flex;
         position: fixed;
         z-index: 1000;
         left: 0;
@@ -107,13 +101,16 @@ export function showAddTodoModal() {
         width: 100%;
         height: 100%;
         background-color: rgba(0,0,0,0.4);
-        display: flex;
         align-items: center;
         justify-content: center;
     `;
     
+    const boardOptions = boards.map(board => 
+        `<option value="${board.id}">${board.name}</option>`
+    ).join('');
+    
     modal.innerHTML = `
-        <div class="modal-content" style="background: white; padding: 20px; border-radius: 8px; width: 500px; max-width: 90%;">
+        <div class="modal-content" style="background: white; padding: 20px; border-radius: 8px; width: 500px; max-width: 90%; max-height: 90vh; overflow-y: auto;">
             <div class="form-group">
                 <input type="text" class="title-input" placeholder="Enter title here..." style="width: 100%; font-size: 1.2em; border: none; outline: none; border-bottom: 1px solid #ddd; padding: 8px 0;">
             </div>
@@ -136,11 +133,10 @@ export function showAddTodoModal() {
                 </div>
             </div>
             <div class="form-group">
-                <label><strong>Category:</strong></label>
-                <select class="category-input" style="width: 100%; padding: 4px;">
-                    <option value="Personal">Personal</option>
-                    <option value="Work">Work</option>
-                    <option value="Study">Study</option>
+                <label><strong>Board:</strong></label>
+                <select class="board-input" style="width: 100%; padding: 4px;" required>
+                    <option value="">Select a board</option>
+                    ${boardOptions}
                 </select>
             </div>
             <div class="form-group">
@@ -160,6 +156,7 @@ export function showAddTodoModal() {
     const titleInput = modal.querySelector('.title-input');
     const saveBtn = modal.querySelector('.save-btn');
     const cancelBtn = modal.querySelector('.cancel-btn');
+    const boardInput = modal.querySelector('.board-input');
 
     modal.addEventListener('click', (e) => {
         if (e.target === modal) closeModal();
@@ -171,12 +168,16 @@ export function showAddTodoModal() {
         const title = titleInput.value.trim();
         const description = modal.querySelector('.description-input').value.trim();
         const dueDate = modal.querySelector('.date-input').value;
-        const priority = modal.querySelector('.priority-input').value;
-        const category = modal.querySelector('.category-input').value;
+        const boardId = boardInput.value;
         const notes = modal.querySelector('.notes-input').value.trim();
 
         if (!title) {
             alert('Title is required!');
+            return;
+        }
+
+        if (!boardId) {
+            alert('Please select a board!');
             return;
         }
 
@@ -185,10 +186,9 @@ export function showAddTodoModal() {
                 title,
                 description,
                 dueDate,
-                priority,
-                category,
+                boardId: parseInt(boardId),
                 notes,
-                status: 'PENDING'
+                status: 'Ongoing'
             });
             closeModal();
             document.dispatchEvent(new CustomEvent('todosUpdated'));
@@ -198,7 +198,6 @@ export function showAddTodoModal() {
         }
     });
 
-    // Focus on title input when modal opens
     titleInput.focus();
 }
 

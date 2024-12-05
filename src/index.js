@@ -7,6 +7,7 @@ export class TodoApp {
     constructor() {
         this.todos = [];
         this.currentFilter = 'all';
+        this.currentBoardId = null;
         this.initializeApp();
     }
 
@@ -34,6 +35,7 @@ export class TodoApp {
             }
             
             this.setupEventListeners();
+            await this.loadAndRenderTodos();
         } catch (error) {
             console.error('Failed to initialize app:', error);
             this.showError('Failed to initialize app: ' + error.message);
@@ -42,7 +44,12 @@ export class TodoApp {
 
     async loadAndRenderTodos() {
         try {
-            const todos = await todoApi.getAllTodos();
+            let todos;
+            if (this.currentBoardId) {
+                todos = await todoApi.getTodosByBoard(this.currentBoardId);
+            } else {
+                todos = await todoApi.getAllTodos();
+            }
             this.todos = todos;
             this.renderTodos(this.filterTodos(todos));
         } catch (error) {
@@ -56,17 +63,26 @@ export class TodoApp {
         if (!todoListContainer) return;
 
         todoListContainer.innerHTML = '';
+        
+        if (todos.length === 0) {
+            const emptyMessage = document.createElement('div');
+            emptyMessage.className = 'empty-message';
+            emptyMessage.textContent = 'No todos to display';
+            todoListContainer.appendChild(emptyMessage);
+            return;
+        }
+
         const ul = document.createElement('ul');
         ul.className = 'todo-list';
 
         todos.forEach(todo => {
             const li = document.createElement('li');
-            li.dataset.todoId = todo.id;
-            li.className = todo.completed ? 'completed' : '';
+            li.dataset.todoId = todo.taskId;
+            li.className = todo.status === 'Done' ? 'completed' : '';
 
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
-            checkbox.checked = todo.completed;
+            checkbox.checked = todo.status === 'Done';
 
             const title = document.createElement('span');
             title.className = 'todo-title';
@@ -79,14 +95,9 @@ export class TodoApp {
                 date.textContent = formattedDate;
             }
 
-            const priority = document.createElement('span');
-            priority.className = `priority ${todo.priority.toLowerCase()}`;
-            priority.textContent = todo.priority;
-
             li.appendChild(checkbox);
             li.appendChild(title);
             if (todo.dueDate) li.appendChild(date);
-            li.appendChild(priority);
 
             ul.appendChild(li);
         });
@@ -108,12 +119,7 @@ export class TodoApp {
             case 'thisMonth':
                 return todos.filter(todo => todo.dueDate && isThisMonth(new Date(todo.dueDate)));
             case 'completed':
-                return todos.filter(todo => todo.completed);
-            case 'WORK':
-            case 'PERSONAL':
-            case 'SHOPPING':
-            case 'OTHERS':
-                return todos.filter(todo => todo.category === this.currentFilter);
+                return todos.filter(todo => todo.status === 'Done');
             default:
                 return todos;
         }
@@ -125,7 +131,7 @@ export class TodoApp {
             const menuItem = e.target.closest('.menu-item');
             if (menuItem) {
                 const timeFilter = menuItem.dataset.time;
-                const categoryFilter = menuItem.dataset.category;
+                const boardId = menuItem.dataset.boardId;
 
                 // Update active menu item
                 document.querySelectorAll('.menu-item').forEach(item => {
@@ -136,14 +142,33 @@ export class TodoApp {
                 // Update filter and re-render
                 if (timeFilter) {
                     this.currentFilter = timeFilter;
-                } else if (categoryFilter) {
-                    this.currentFilter = categoryFilter;
+                    this.currentBoardId = null;
+                } else if (boardId) {
+                    this.currentBoardId = parseInt(boardId);
+                    this.currentFilter = 'all';
                 } else if (menuItem.classList.contains('all')) {
                     this.currentFilter = 'all';
+                    this.currentBoardId = null;
                 }
 
-                this.renderTodos(this.filterTodos(this.todos));
+                await this.loadAndRenderTodos();
             }
+        });
+
+        // Listen for todo updates
+        document.addEventListener('todosUpdated', () => {
+            this.loadAndRenderTodos();
+        });
+
+        // Listen for board updates
+        document.addEventListener('boardsUpdated', () => {
+            // Refresh the sidebar when boards are updated
+            const existingSidebar = document.querySelector('.sidebar');
+            if (existingSidebar) {
+                const newSidebar = createSidebar();
+                existingSidebar.replaceWith(newSidebar);
+            }
+            this.loadAndRenderTodos();
         });
 
         // Handle todo item changes
@@ -151,43 +176,24 @@ export class TodoApp {
             if (e.target.type === 'checkbox' && e.target.closest('li')) {
                 const li = e.target.closest('li');
                 const todoId = parseInt(li.dataset.todoId);
-                const todo = this.todos.find(t => t.id === todoId);
-                
-                if (todo) {
-                    try {
-                        const updatedTodo = { ...todo, completed: e.target.checked };
-                        await todoApi.updateTodo(todoId, updatedTodo);
-                        await this.loadAndRenderTodos(); // Refresh the list
-                    } catch (error) {
-                        console.error('Failed to update todo:', error);
-                        e.target.checked = !e.target.checked; // Revert the checkbox
-                        this.showError('Failed to update todo: ' + error.message);
-                    }
+                const status = e.target.checked ? 'Done' : 'Ongoing';
+
+                try {
+                    await todoApi.updateTodo(todoId, { status });
+                    li.className = status === 'Done' ? 'completed' : '';
+                } catch (error) {
+                    console.error('Failed to update todo:', error);
+                    this.showError('Failed to update todo: ' + error.message);
+                    // Revert checkbox state on error
+                    e.target.checked = !e.target.checked;
                 }
             }
-        });
-
-        // Handle todos updated event
-        document.addEventListener('todosUpdated', () => {
-            this.loadAndRenderTodos();
         });
     }
 
     showError(message) {
-        // Create error message element if it doesn't exist
-        let errorDiv = document.getElementById('error-message');
-        if (!errorDiv) {
-            errorDiv = document.createElement('div');
-            errorDiv.id = 'error-message';
-            errorDiv.className = 'error-message';
-            document.body.appendChild(errorDiv);
-        }
-
-        errorDiv.textContent = message;
-        errorDiv.style.display = 'block';
-        setTimeout(() => {
-            errorDiv.style.display = 'none';
-        }, 5000);
+        // You can implement a more sophisticated error display mechanism
+        alert(message);
     }
 }
 
