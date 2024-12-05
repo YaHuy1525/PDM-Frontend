@@ -73,10 +73,12 @@ export function createSidebar() {
         }
     });
 
+    // Add event listener for "All Todos"
     sidebar.querySelector('.menu-item.all').addEventListener('click', () => {
         filterTodosByCategory(null);
     });
 
+    // Add event listeners for category filtering
     sidebar.querySelector('.menu-item.work').addEventListener('click', () => {
         filterTodosByCategory('work');
     });
@@ -87,6 +89,7 @@ export function createSidebar() {
         filterTodosByCategory('personal');
     });
 
+    // Add event listeners for time filtering
     sidebar.querySelector('.menu-item[data-time="today"]').addEventListener('click', () => {
         filterTodosByTime('today');
     });
@@ -97,6 +100,7 @@ export function createSidebar() {
         filterTodosByTime('thisMonth');
     });
 
+    // Add event listener for "Add todo" button
     const addTodoBtn = sidebar.querySelector('.add-todo-btn');
     addTodoBtn.addEventListener('click', () => {
         showNewTodoModal();

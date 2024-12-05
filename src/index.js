@@ -3,82 +3,114 @@ import { createSidebar } from './sidebar';
 import { loadTodos } from './loadTodos';
 import { addTitle } from './addTitle';
 import { showTodoDetails } from './todoDetails';
-import TodoService from './todoService';
+
+// document.addEventListener('DOMContentLoaded', () => {
+//   const sidebar = createSidebar();
+//   document.body.appendChild(sidebar);
+
+//   const main = document.createElement('div');
+//   main.id = 'main';
+//   document.body.appendChild(main);
+
+//   addTitle('My Todo', main);
+//   loadTodos(main);
+
+//   // Add event delegation for todo items
+//   main.addEventListener('click', (e) => {
+//     const todoItem = e.target.closest('li');
+//     if (todoItem && !e.target.matches('input[type="checkbox"]')) {
+//       const todoId = Number(todoItem.dataset.todoId);
+//       showTodoDetails(todoId);
+//     }
+//   });
+// });
+
+// document.addEventListener('todosUpdated', () => {
+//   loadTodos(document.getElementById('main'));
+// })
+import Todo from './addTodo';
 
 class TodoApp {
     constructor() {
-        createSidebar();
-        loadTodos();
-        createSidebar();
-        showTodoDetails();
         this.todos = [];
         this.initializeApp();
     }
 
     async initializeApp() {
         try {
-            // Create sidebar and main container
-            createSidebar();
-            const main = document.createElement('div');
-            main.id = 'main';
-            document.body.appendChild(main);
-
-            // Add title
-            addTitle('My Todo', main);
-
-            // Load and display todos
-            await this.loadAndDisplayTodos(main);
-
-            // Add event delegation for todo items
-            main.addEventListener('click', (e) => {
-                const todoItem = e.target.closest('li');
-                if (todoItem && !e.target.matches('input[type="checkbox"]')) {
-                    const todoId = Number(todoItem.dataset.todoId);
-                    showTodoDetails(todoId);
-                }
-            });
+            this.todos = await Todo.loadTodos();
+            this.renderTodos();
         } catch (error) {
             console.error('Failed to initialize app:', error);
-            this.showError('Failed to initialize the application. Please try again later.');
+            // Show error message to user
         }
-    }
-
-    async loadAndDisplayTodos(container) {
-        try {
-            await loadTodos(container);
-        } catch (error) {
-            console.error('Failed to load todos:', error);
-            this.showError('Failed to load todos. Please try again later.');
-        }
-    }
-
-    showError(message) {
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'error-message';
-        errorDiv.textContent = message;
-        document.body.appendChild(errorDiv);
-        
-        // Remove error message after 5 seconds
-        setTimeout(() => {
-            errorDiv.remove();
-        }, 5000);
     }
 
     async addTodo(todoData) {
         try {
-            const newTodo = await TodoService.createTodo(todoData);
-            await this.loadAndDisplayTodos(document.getElementById('main'));
-            return newTodo;
+            const newTodo = await Todo.createTodo(todoData);
+            this.todos.push(newTodo);
+            this.renderTodos();
         } catch (error) {
             console.error('Failed to add todo:', error);
-            this.showError('Failed to add todo. Please try again.');
-            throw error;
+            // Show error message to user
+        }
+    }
+
+    async updateTodo(id, todoData) {
+        try {
+            const updatedTodo = await Todo.updateTodo(id, todoData);
+            const index = this.todos.findIndex(todo => todo.id === id);
+            if (index !== -1) {
+                this.todos[index] = updatedTodo;
+                this.renderTodos();
+            }
+        } catch (error) {
+            console.error('Failed to update todo:', error);
+            // Show error message to user
+        }
+    }
+
+    async deleteTodo(id) {
+        try {
+            await Todo.deleteTodo(id);
+            this.todos = this.todos.filter(todo => todo.id !== id);
+            this.renderTodos();
+        } catch (error) {
+            console.error('Failed to delete todo:', error);
+            // Show error message to user
+        }
+    }
+
+    renderTodos() {
+        // Your existing render logic here
+        const todoList = document.querySelector('.todo-list');
+        todoList.innerHTML = '';
+        
+        this.todos.forEach(todo => {
+            const todoElement = document.createElement('div');
+            todoElement.classList.add('todo-item');
+            todoElement.innerHTML = `
+                <h3>${todo.title}</h3>
+                <p>${todo.description}</p>
+                <button onclick="app.deleteTodo(${todo.id})">Delete</button>
+                <button onclick="app.toggleComplete(${todo.id})">
+                    ${todo.completed ? 'Uncomplete' : 'Complete'}
+                </button>
+            `;
+            todoList.appendChild(todoElement);
+        });
+    }
+
+    async toggleComplete(id) {
+        const todo = this.todos.find(t => t.id === id);
+        if (todo) {
+            todo.completed = !todo.completed;
+            await this.updateTodo(id, todo);
         }
     }
 }
 
-// Initialize the app when the DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    const app = new TodoApp();
-    window.app = app;
-});
+// Initialize the app
+const app = new TodoApp();
+window.app = app; // Make it accessible globally for onclick handlers
