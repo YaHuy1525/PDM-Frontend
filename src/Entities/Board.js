@@ -3,7 +3,43 @@ import { List, message } from 'antd';
 import TodoItem from './TodoItem';
 import todoService from '../services/todoService';
 
-const Board = () => {
+export class Board {
+    constructor(
+        id = null,
+        name,
+        description = '',
+        createdAt = new Date().toISOString(),
+        tasks = []
+    ) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.createdAt = createdAt;
+        this.tasks = tasks;
+    }
+
+    static fromJson(json) {
+        return new Board(
+            json.boardId,
+            json.name,
+            json.description,
+            json.createdAt,
+            json.tasks?.map(task => Todo.fromJson(task)) || []
+        );
+    }
+
+    toJson() {
+        return {
+            boardId: this.id,
+            name: this.name,
+            description: this.description,
+            createdAt: this.createdAt,
+            tasks: this.tasks.map(task => task.toJson())
+        };
+    }
+}
+
+const BoardComponent = () => {
   const [todos, setTodos] = useState([]);
   const fetchTodos = async () => {
     try {
@@ -56,4 +92,4 @@ const Board = () => {
   );
 };
 
-export default Board;
+export default BoardComponent;

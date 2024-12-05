@@ -1,3 +1,4 @@
+const path = require('path');
 const { merge } = require('webpack-merge');
 const common = require('./webpack.common.js');
 
@@ -5,12 +6,19 @@ module.exports = merge(common, {
   mode: 'development',
   devtool: 'inline-source-map',
   devServer: {
-    contentBase: './dist',
-  },
-  devServer: {
-    watchFiles: ['./src/index.html'], // Use single quotes
-    hot: true, // Add hot module replacement
-    open: true, // Auto-open browser
-    port: 8080 // Specify port explicitly
+    static: {
+      directory: path.join(__dirname, 'dist'),
+      publicPath: '/'
+    },
+    watchFiles: ['./src/index.html'],
+    hot: true,
+    open: true,
+    port: 1000,
+    proxy: [{
+      context: ['/api'],
+      target: 'http://localhost:8080',
+      secure: false,
+      changeOrigin: true
+    }]
   }
 });

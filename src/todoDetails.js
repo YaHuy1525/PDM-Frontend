@@ -1,82 +1,23 @@
-import { loadTodosFromLocalStorage, saveTodosToLocalStorage } from './loadTodos';
-import { Todo } from './todo';
-
-export function showTodoDetails(todoId) {
-    const todos = loadTodosFromLocalStorage();
-    const todo = todos.find(t => t.id === todoId);
-    
-    if (!todo) {
-        console.error('Todo not found');
-        return;
-    }
-    
-    let modal = document.getElementById('todo-modal');
-    if (!modal) {
-        modal = createModal();
-    }
-    
-    populateModal(modal, todo);
-    modal.style.display = 'block';
-}
+import { todoApi } from './Service/todoService.js';
 
 export function showNewTodoModal() {
-    let modal = document.getElementById('todo-modal');
-    if (!modal) {
-        modal = createModal();
-    }
-    
-    const newTodo = new Todo(
-        Date.now(),
-        'Enter title here...',
-        'Describe your task here...',
-        new Date().toISOString().split('T')[0],
-        'low',
-        'Add any additional notes here...',
-        'personal',
-        false
-    );
-    
-    populateModal(modal, newTodo);
-    enableEditing(modal);
-    
-    // Handle placeholder text styling
-    const editableElements = modal.querySelectorAll('[contenteditable="true"]');
-    editableElements.forEach(element => {
-        element.classList.add('placeholder-text');
-        
-        element.addEventListener('focus', function() {
-            if (element.textContent.includes('here...')) {
-                element.textContent = '';
-                element.classList.remove('placeholder-text');
-            }
-        });
-        
-        element.addEventListener('blur', function() {
-            if (!element.textContent.trim()) {
-                element.textContent = element.getAttribute('data-placeholder') || 'Enter text here...';
-                element.classList.add('placeholder-text');
-            }
-        });
-    });
-    
-    // Set placeholder text attributes
-    modal.querySelector('.todo-title').setAttribute('data-placeholder', 'Enter title here...');
-    modal.querySelector('.todo-description').setAttribute('data-placeholder', 'Describe your task here...');
-    modal.querySelector('.todo-notes').setAttribute('data-placeholder', 'Add any additional notes here...');
-    
-    modal.querySelector('.edit-btn').style.display = 'none';
-    modal.querySelector('.delete-btn').style.display = 'none';
-    modal.querySelector('.save-btn').style.display = 'inline-block';
-    modal.style.display = 'block';
-}
-
-function createModal() {
     const modal = document.createElement('div');
-    modal.id = 'todo-modal';
     modal.className = 'modal';
-    
+    modal.style.cssText = `
+        display: block;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    `;
     modal.innerHTML = `
-        <div class="modal-content">
+        <div class="modal-content" style="background: white; padding: 20px; border-radius: 8px; width: 500px; max-width: 90%;">
             <div class="modal-header">
                 <h2 class="todo-title" contenteditable="false"></h2>
                 <div class="modal-buttons">
@@ -108,132 +49,160 @@ function createModal() {
         </div>
     `;
 
+    document.body.appendChild(modal);
+
+    const form = modal.querySelector('#todo-form');
     const closeBtn = modal.querySelector('.close');
-    const editBtn = modal.querySelector('.edit-btn');
-    const deleteBtn = modal.querySelector('.delete-btn');
+    const cancelBtn = modal.querySelector('.cancel-btn');
+
+    function closeModal() {
+        modal.remove();
+    }
+
+    closeBtn.onclick = closeModal;
+    cancelBtn.onclick = closeModal;
+    modal.onclick = (e) => {
+        if (e.target === modal) {
+            closeModal();
+        }
+    };
+
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+        
+        const formData = new FormData(form);
+        const todoData = {
+            title: formData.get('title'),
+            description: formData.get('description'),
+            dueDate: formData.get('dueDate'),
+            priority: formData.get('priority'),
+            status: 'PENDING'
+        };
+
+        if (!todoData.title) {
+            alert('Title is required!');
+            return;
+        }
+
+        try {
+            await todoApi.addTodo(todoData);
+            closeModal();
+            document.dispatchEvent(new CustomEvent('todosUpdated'));
+        } catch (error) {
+            console.error('Failed to create todo:', error);
+            alert('Failed to create todo: ' + error.message);
+        }
+    };
+}
+
+export function showAddTodoModal() {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.cssText = `
+        display: block;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    `;
+    
+    modal.innerHTML = `
+        <div class="modal-content" style="background: white; padding: 20px; border-radius: 8px; width: 500px; max-width: 90%;">
+            <div class="form-group">
+                <input type="text" class="title-input" placeholder="Enter title here..." style="width: 100%; font-size: 1.2em; border: none; outline: none; border-bottom: 1px solid #ddd; padding: 8px 0;">
+            </div>
+            <div class="form-group">
+                <label><strong>Description:</strong></label>
+                <textarea class="description-input" placeholder="Describe your task here..." style="width: 100%; min-height: 60px; border: 1px solid #ddd; padding: 8px; resize: vertical;"></textarea>
+            </div>
+            <div class="form-group" style="display: flex; gap: 20px;">
+                <div style="flex: 1;">
+                    <label><strong>Due Date:</strong></label>
+                    <input type="date" class="date-input" style="width: 100%; padding: 4px;">
+                </div>
+                <div style="flex: 1;">
+                    <label><strong>Priority:</strong></label>
+                    <select class="priority-input" style="width: 100%; padding: 4px;">
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label><strong>Category:</strong></label>
+                <select class="category-input" style="width: 100%; padding: 4px;">
+                    <option value="Personal">Personal</option>
+                    <option value="Work">Work</option>
+                    <option value="Study">Study</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label><strong>Notes:</strong></label>
+                <textarea class="notes-input" placeholder="Add any additional notes here..." style="width: 100%; min-height: 60px; border: 1px solid #ddd; padding: 8px; resize: vertical;"></textarea>
+            </div>
+            <div class="modal-buttons" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                <button class="save-btn" style="padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">Save</button>
+                <button class="cancel-btn" style="padding: 8px 16px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const closeModal = () => modal.remove();
+    const titleInput = modal.querySelector('.title-input');
     const saveBtn = modal.querySelector('.save-btn');
+    const cancelBtn = modal.querySelector('.cancel-btn');
 
-    closeBtn.onclick = () => {
-        modal.style.display = 'none';
-        resetEditMode(modal);
-    };
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
 
-    editBtn.onclick = () => enableEditing(modal);
-    deleteBtn.onclick = () => deleteTodo(modal);
-    saveBtn.onclick = () => saveChanges(modal);
+    cancelBtn.addEventListener('click', closeModal);
 
-    window.onclick = (event) => {
-        if (event.target === modal) {
-            modal.style.display = 'none';
-            resetEditMode(modal);
+    saveBtn.addEventListener('click', async () => {
+        const title = titleInput.value.trim();
+        const description = modal.querySelector('.description-input').value.trim();
+        const dueDate = modal.querySelector('.date-input').value;
+        const priority = modal.querySelector('.priority-input').value;
+        const category = modal.querySelector('.category-input').value;
+        const notes = modal.querySelector('.notes-input').value.trim();
+
+        if (!title) {
+            alert('Title is required!');
+            return;
         }
-    };
 
-    modal.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            modal.style.display = 'none';
-            resetEditMode(modal);
-        }
-        if (e.key === 'Enter' && e.ctrlKey) {
-            saveChanges(modal);
+        try {
+            await todoApi.addTodo({
+                title,
+                description,
+                dueDate,
+                priority,
+                category,
+                notes,
+                status: 'PENDING'
+            });
+            closeModal();
+            document.dispatchEvent(new CustomEvent('todosUpdated'));
+        } catch (error) {
+            console.error('Failed to create todo:', error);
+            alert('Failed to create todo: ' + error.message);
         }
     });
 
-    document.body.appendChild(modal);
-    return modal;
+    // Focus on title input when modal opens
+    titleInput.focus();
 }
 
-function enableEditing(modal) {
-    const editables = modal.querySelectorAll('[contenteditable]');
-    const inputs = modal.querySelectorAll('input, select');
-    editables.forEach(el => el.contentEditable = 'true');
-    inputs.forEach(el => el.disabled = false);
-    
-    modal.querySelector('.edit-btn').style.display = 'none';
-    modal.querySelector('.delete-btn').style.display = 'none';
-    modal.querySelector('.save-btn').style.display = 'inline-block';
-}
-
-function resetEditMode(modal) {
-    const editables = modal.querySelectorAll('[contenteditable]');
-    const inputs = modal.querySelectorAll('input, select');
-    editables.forEach(el => el.contentEditable = 'false');
-    inputs.forEach(el => el.disabled = true);
-    
-    modal.querySelector('.edit-btn').style.display = 'inline-block';
-    modal.querySelector('.delete-btn').style.display = 'inline-block';
-    modal.querySelector('.save-btn').style.display = 'none';
-}
-
-function deleteTodo(modal) {
-    if (confirm('Are you sure you want to delete this todo?')) {
-        try {
-            const todos = loadTodosFromLocalStorage();
-            const todoId = Number(modal.dataset.todoId);
-            const filteredTodos = todos.filter(todo => todo.id !== todoId);
-            
-            saveTodosToLocalStorage(filteredTodos)
-            
-            const event = new CustomEvent('todosUpdated');
-            document.dispatchEvent(event);
-        } catch (error) {
-            console.error('Error deleting todo:', error);
-            alert('Failed to delete todo. Please try again.');
-        }
-    }
-}
-
-function saveChanges(modal) {
-    try {
-        const todos = loadTodosFromLocalStorage();
-        const todoId = Number(modal.dataset.todoId);
-        let todo = todos.find(t => t.id === todoId);
-        
-        const updatedData = {
-            title: modal.querySelector('.todo-title').textContent.trim(),
-            description: modal.querySelector('.todo-description').textContent.trim(),
-            dueDate: modal.querySelector('.todo-date').value,
-            priority: modal.querySelector('.todo-priority').value,
-            category: modal.querySelector('.todo-category').value,
-            notes: modal.querySelector('.todo-notes').textContent.trim()
-        };
-
-        if (!todo) {
-            // This is a new todo
-            todo = new Todo(
-                todoId,
-                updatedData.title,
-                updatedData.description,
-                updatedData.dueDate,
-                updatedData.priority,
-                updatedData.notes,
-                updatedData.category,
-                false
-            );
-            todos.push(todo);
-        } else {
-            // Update existing todo
-            Object.assign(todo, updatedData);
-        }
-        
-        saveTodosToLocalStorage(todos);
-        resetEditMode(modal);
-        modal.style.display = 'none';
-        
-        const event = new CustomEvent('todosUpdated');
-        document.dispatchEvent(event);
-    } catch (error) {
-        console.error('Error saving changes:', error);
-        alert('Failed to save changes. Please try again.');
-    }
-}
-
-function populateModal(modal, todo) {
-    modal.dataset.todoId = todo.id;
-    modal.querySelector('.todo-title').textContent = todo.title;
-    modal.querySelector('.todo-description').textContent = todo.description || '';
-    modal.querySelector('.todo-date').value = todo.dueDate;
-    modal.querySelector('.todo-priority').value = todo.priority;
-    modal.querySelector('.todo-category').value = todo.category;
-    modal.querySelector('.todo-notes').textContent = todo.notes || '';
+export function showTodoDetails(todoId) {
+    // Implementation for showing existing todo details
+    // This can be implemented later if needed
 }
