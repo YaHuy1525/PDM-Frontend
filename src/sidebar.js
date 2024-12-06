@@ -92,12 +92,8 @@ export function createSidebar() {
         }
     };
 
-    // Load boards initially
     loadBoards();
-
-    // Listen for board updates
     document.addEventListener('boardsUpdated', loadBoards);
-
     return sidebar;
 }
 

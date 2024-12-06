@@ -4,7 +4,6 @@ import { format, isToday, isThisWeek, isThisMonth } from 'date-fns';
 import { todoApi } from './Service/todoService.js';
 import { labelApi } from './Service/labelService.js';
 import { showNewTodoModal } from './todoDetails.js';
-import { addTitle } from './addTitle.js';
 
 export class TodoApp {
     constructor() {
@@ -12,7 +11,6 @@ export class TodoApp {
         this.labels = new Map();
         this.currentFilter = 'all';
         this.currentBoardId = null;
-        addTitle();
         this.initializeApp();
     }
 
