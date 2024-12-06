@@ -1,11 +1,14 @@
+import './styles.css';
 import { createSidebar } from './sidebar.js';
 import { format, isToday, isThisWeek, isThisMonth } from 'date-fns';
 import { todoApi } from './Service/todoService.js';
+import { labelApi } from './Service/labelService.js';
 import { showNewTodoModal } from './todoDetails.js';
 
 export class TodoApp {
     constructor() {
         this.todos = [];
+        this.labels = new Map(); // Cache for labels
         this.currentFilter = 'all';
         this.currentBoardId = null;
         this.initializeApp();
@@ -13,29 +16,29 @@ export class TodoApp {
 
     async initializeApp() {
         try {
-            // Initialize sidebar
-            const existingSidebar = document.querySelector('.sidebar');
-            if (existingSidebar) {
-                const newSidebar = createSidebar();
-                existingSidebar.replaceWith(newSidebar);
-            } else {
-                document.body.appendChild(createSidebar());
+            console.log('Initializing app...');
+            const mainContent = document.querySelector('main');
+            if (!mainContent) {
+                throw new Error('Main content element not found');
             }
 
-            // Create main content area if it doesn't exist
-            if (!document.querySelector('.main-content')) {
-                const mainContent = document.createElement('div');
-                mainContent.className = 'main-content';
-                document.body.appendChild(mainContent);
+            // Create sidebar
+            const sidebar = createSidebar();
+            if (sidebar) {
+                document.body.insertBefore(sidebar, mainContent);
+            }
 
-                // Create todo list container
-                const todoListContainer = document.createElement('div');
+            // Create todo list container if it doesn't exist
+            let todoListContainer = document.querySelector('.todo-list-container');
+            if (!todoListContainer) {
+                todoListContainer = document.createElement('div');
                 todoListContainer.className = 'todo-list-container';
                 mainContent.appendChild(todoListContainer);
             }
             
             this.setupEventListeners();
             await this.loadAndRenderTodos();
+            console.log('App initialization complete');
         } catch (error) {
             console.error('Failed to initialize app:', error);
             this.showError('Failed to initialize app: ' + error.message);
@@ -44,17 +47,30 @@ export class TodoApp {
 
     async loadAndRenderTodos() {
         try {
+            console.log('Loading data...');
+            // Load labels first
+            const labels = await labelApi.getAllLabels();
+            console.log('Labels loaded:', labels);
+            this.labels.clear();
+            labels.forEach(label => {
+                this.labels.set(label.labelId, label);
+            });
+
+            // Then load todos
             let todos;
             if (this.currentBoardId) {
                 todos = await todoApi.getTodosByBoard(this.currentBoardId);
             } else {
                 todos = await todoApi.getAllTodos();
             }
+            console.log('Todos loaded:', todos);
+            
             this.todos = todos;
             this.renderTodos(this.filterTodos(todos));
+            console.log('Render complete');
         } catch (error) {
-            console.error('Failed to load todos:', error);
-            this.showError('Failed to load todos: ' + error.message);
+            console.error('Error loading data:', error);
+            this.showError('Failed to load data: ' + error.message);
         }
     }
 
@@ -63,6 +79,11 @@ export class TodoApp {
         if (!todoListContainer) return;
 
         todoListContainer.innerHTML = '';
+        
+        // Add title
+        const title = document.createElement('h1');
+        title.textContent = 'Todo List';
+        todoListContainer.appendChild(title);
         
         if (todos.length === 0) {
             const emptyMessage = document.createElement('div');
@@ -84,10 +105,7 @@ export class TodoApp {
             checkbox.type = 'checkbox';
             checkbox.checked = todo.status === 'Done';
 
-            const title = document.createElement('span');
-            title.className = 'todo-title';
-            title.textContent = todo.title;
-
+            // Create date element first if it exists
             const date = document.createElement('span');
             date.className = 'due-date';
             if (todo.dueDate) {
@@ -95,14 +113,43 @@ export class TodoApp {
                 date.textContent = formattedDate;
             }
 
+            const title = document.createElement('span');
+            title.className = 'todo-title';
+            title.textContent = todo.title;
+
+            // Add label if it exists
+            if (todo.labelId) {
+                const labelInfo = this.labels.get(todo.labelId);
+                if (labelInfo) {
+                    const label = document.createElement('span');
+                    label.className = 'priority';
+                    label.style.backgroundColor = labelInfo.color || '#666666';
+                    label.style.color = this.getContrastColor(labelInfo.color || '#666666');
+                    label.textContent = labelInfo.name || 'No Label';
+                    li.appendChild(label);
+                }
+            }
+
             li.appendChild(checkbox);
-            li.appendChild(title);
             if (todo.dueDate) li.appendChild(date);
+            li.appendChild(title);
 
             ul.appendChild(li);
         });
 
         todoListContainer.appendChild(ul);
+    }
+
+    getContrastColor(hexcolor) {
+        hexcolor = hexcolor.replace('#', '');
+
+        const r = parseInt(hexcolor.substr(0,2),16);
+        const g = parseInt(hexcolor.substr(2,2),16);
+        const b = parseInt(hexcolor.substr(4,2),16);
+        
+        const yiq = ((r*299)+(g*587)+(b*114))/1000;
+        
+        return (yiq >= 128) ? 'black' : 'white';
     }
 
     filterTodos(todos) {
@@ -192,8 +239,10 @@ export class TodoApp {
     }
 
     showError(message) {
-        // You can implement a more sophisticated error display mechanism
-        alert(message);
+        const todoListContainer = document.querySelector('.todo-list-container');
+        if (todoListContainer) {
+            todoListContainer.innerHTML = `<div class="error-message">${message}</div>`;
+        }
     }
 }
 

@@ -13,7 +13,7 @@ module.exports = merge(common, {
     watchFiles: ['./src/index.html'],
     hot: true,
     open: true,
-    port: 1000,
+    port: 5000,
     proxy: [{
       context: ['/api'],
       target: 'http://localhost:8080',

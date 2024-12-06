@@ -22,7 +22,10 @@ class TodoService {
                 createdAt: todo.createdAt,
                 boardId: todo.board?.boardId,
                 userId: todo.user?.userId,
-                labelId: todo.label?.labelId
+                labelId: todo.label?.labelId,
+                labelName: todo.label?.name,
+                labelColor: todo.label?.color,
+                priority: todo.priority || 'medium'
             }));
         } catch (error) {
             console.error('Error fetching todos:', error.response?.data || error.message);
@@ -43,7 +46,9 @@ class TodoService {
                 createdAt: todo.createdAt,
                 boardId: todo.board?.boardId,
                 userId: todo.user?.userId,
-                labelId: todo.label?.labelId
+                labelId: todo.label?.labelId,
+                labelName: todo.label?.name,
+                labelColor: todo.label?.color
             };
         } catch (error) {
             console.error('Error fetching todo:', error.response?.data || error.message);
@@ -71,7 +76,9 @@ class TodoService {
                 createdAt: response.data.createdAt,
                 boardId: response.data.board?.boardId,
                 userId: response.data.user?.userId,
-                labelId: response.data.label?.labelId
+                labelId: response.data.label?.labelId,
+                labelName: response.data.label?.name,
+                labelColor: response.data.label?.color
             };
         } catch (error) {
             console.error('Error adding todo:', error.response?.data || error.message);
@@ -96,7 +103,9 @@ class TodoService {
                 createdAt: response.data.createdAt,
                 boardId: response.data.board?.boardId,
                 userId: response.data.user?.userId,
-                labelId: response.data.label?.labelId
+                labelId: response.data.label?.labelId,
+                labelName: response.data.label?.name,
+                labelColor: response.data.label?.color
             };
         } catch (error) {
             console.error('Error updating todo:', error.response?.data || error.message);
@@ -125,7 +134,9 @@ class TodoService {
                 createdAt: todo.createdAt,
                 boardId: todo.board?.boardId,
                 userId: todo.user?.userId,
-                labelId: todo.label?.labelId
+                labelId: todo.label?.labelId,
+                labelName: todo.label?.name,
+                labelColor: todo.label?.color
             }));
         } catch (error) {
             console.error('Error fetching todos for board:', error.response?.data || error.message);

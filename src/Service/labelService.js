@@ -13,9 +13,13 @@ class LabelService {
     static async getAllLabels() {
         try {
             const response = await this.axiosInstance.get('');
-            return response.data;
+            return response.data.map(label => ({
+                labelId: label.labelId,
+                name: label.name,
+                color: this.getColorForLabel(label.name)
+            }));
         } catch (error) {
-            console.error('Error fetching labels:');
+            console.error('Error fetching labels:', error.response?.data || error.message);
             throw error;
         }
     }
@@ -23,9 +27,14 @@ class LabelService {
     static async getLabelById(id) {
         try {
             const response = await this.axiosInstance.get(`/${id}`);
-            return response.data;
+            const label = response.data;
+            return {
+                labelId: label.labelId,
+                name: label.name,
+                color: this.getColorForLabel(label.name)
+            };
         } catch (error) {
-            console.error('Error fetching label:');
+            console.error('Error fetching label:', error.response?.data || error.message);
             throw error;
         }
     }
@@ -38,7 +47,7 @@ class LabelService {
             });
             return response.data;
         } catch (error) {
-            console.error('Error creating label:');
+            console.error('Error creating label:', error.response?.data || error.message);
             throw error;
         }
     }
@@ -51,7 +60,7 @@ class LabelService {
             });
             return response.data;
         } catch (error) {
-            console.error('Error updating label:');
+            console.error('Error updating label:', error.response?.data || error.message);
             throw error;
         }
     }
@@ -61,7 +70,7 @@ class LabelService {
             const response = await this.axiosInstance.delete(`/${id}`);
             return response.data;
         } catch (error) {
-            console.error('Error deleting label:');
+            console.error('Error deleting label:', error.response?.data || error.message);
             throw error;
         }
     }
@@ -71,9 +80,18 @@ class LabelService {
             const response = await this.axiosInstance.get(`/${labelId}/tasks`);
             return response.data;
         } catch (error) {
-            console.error('Error fetching label tasks:');
+            console.error('Error fetching label tasks:', error.response?.data || error.message);
             throw error;
         }
+    }
+
+    static getColorForLabel(name) {
+        const labelColors = {
+            'High': '#ff0000',    // Red
+            'Medium': '#ffff00',  // Yellow
+            'Low': '#00ff00'      // Green
+        };
+        return labelColors[name] || '#666666';
     }
 }
 
