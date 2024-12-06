@@ -4,13 +4,15 @@ import { format, isToday, isThisWeek, isThisMonth } from 'date-fns';
 import { todoApi } from './Service/todoService.js';
 import { labelApi } from './Service/labelService.js';
 import { showNewTodoModal } from './todoDetails.js';
+import { addTitle } from './addTitle.js';
 
 export class TodoApp {
     constructor() {
         this.todos = [];
-        this.labels = new Map(); // Cache for labels
+        this.labels = new Map();
         this.currentFilter = 'all';
         this.currentBoardId = null;
+        addTitle();
         this.initializeApp();
     }
 
@@ -85,7 +87,7 @@ export class TodoApp {
         title.textContent = 'Todo List';
         todoListContainer.appendChild(title);
         
-        if (todos.length === 0) {
+        if (!todos || todos.length === 0) {
             const emptyMessage = document.createElement('div');
             emptyMessage.className = 'empty-message';
             emptyMessage.textContent = 'No todos to display';
@@ -101,55 +103,40 @@ export class TodoApp {
             li.dataset.todoId = todo.taskId;
             li.className = todo.status === 'Done' ? 'completed' : '';
 
+            // Date element
+            if (todo.dueDate) {
+                const date = document.createElement('span');
+                date.className = 'due-date';
+                const formattedDate = format(new Date(todo.dueDate), 'yyyy-MM-dd');
+                date.textContent = formattedDate;
+                li.appendChild(date);
+            }
+
+            // Checkbox
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.checked = todo.status === 'Done';
+            li.appendChild(checkbox);
 
-            // Create date element first if it exists
-            const date = document.createElement('span');
-            date.className = 'due-date';
-            if (todo.dueDate) {
-                const formattedDate = format(new Date(todo.dueDate), 'yyyy-MM-dd');
-                date.textContent = formattedDate;
-            }
-
+            // Title
             const title = document.createElement('span');
             title.className = 'todo-title';
             title.textContent = todo.title;
-
-            // Add label if it exists
-            if (todo.labelId) {
-                const labelInfo = this.labels.get(todo.labelId);
-                if (labelInfo) {
-                    const label = document.createElement('span');
-                    label.className = 'priority';
-                    label.style.backgroundColor = labelInfo.color || '#666666';
-                    label.style.color = this.getContrastColor(labelInfo.color || '#666666');
-                    label.textContent = labelInfo.name || 'No Label';
-                    li.appendChild(label);
-                }
-            }
-
-            li.appendChild(checkbox);
-            if (todo.dueDate) li.appendChild(date);
             li.appendChild(title);
+
+            // Label/Priority
+            if (todo.labelId) {
+                const label = document.createElement('span');
+                label.className = 'priority';
+                label.style.backgroundColor = todo.labelColor;
+                label.textContent = todo.labelName;
+                li.appendChild(label);
+            }
 
             ul.appendChild(li);
         });
 
         todoListContainer.appendChild(ul);
-    }
-
-    getContrastColor(hexcolor) {
-        hexcolor = hexcolor.replace('#', '');
-
-        const r = parseInt(hexcolor.substr(0,2),16);
-        const g = parseInt(hexcolor.substr(2,2),16);
-        const b = parseInt(hexcolor.substr(4,2),16);
-        
-        const yiq = ((r*299)+(g*587)+(b*114))/1000;
-        
-        return (yiq >= 128) ? 'black' : 'white';
     }
 
     filterTodos(todos) {

@@ -13,6 +13,7 @@ class TodoService {
     static async getAllTodos() {
         try {
             const response = await this.axiosInstance.get('');
+            console.log('Raw todo data from backend:', response.data); // Debug log
             return response.data.map(todo => ({
                 taskId: todo.taskId,
                 title: todo.title,
@@ -20,12 +21,11 @@ class TodoService {
                 status: todo.status,
                 dueDate: todo.dueDate,
                 createdAt: todo.createdAt,
-                boardId: todo.board?.boardId,
-                userId: todo.user?.userId,
-                labelId: todo.label?.labelId,
-                labelName: todo.label?.name,
-                labelColor: todo.label?.color,
-                priority: todo.priority || 'medium'
+                boardId: todo.boardId,
+                userId: todo.userId,
+                labelId: todo.labelId,
+                labelName: todo.labelName,
+                labelColor: todo.labelColor
             }));
         } catch (error) {
             console.error('Error fetching todos:', error.response?.data || error.message);
@@ -44,11 +44,11 @@ class TodoService {
                 status: todo.status,
                 dueDate: todo.dueDate,
                 createdAt: todo.createdAt,
-                boardId: todo.board?.boardId,
-                userId: todo.user?.userId,
-                labelId: todo.label?.labelId,
-                labelName: todo.label?.name,
-                labelColor: todo.label?.color
+                boardId: todo.boardId,
+                userId: todo.userId,
+                labelId: todo.labelId,
+                labelName: todo.labelName,
+                labelColor: todo.labelColor
             };
         } catch (error) {
             console.error('Error fetching todo:', error.response?.data || error.message);
@@ -60,26 +60,14 @@ class TodoService {
         try {
             const response = await this.axiosInstance.post('', {
                 title: todo.title,
-                description: todo.description || '',
-                status: todo.status || 'Ongoing',
+                description: todo.description,
+                status: todo.status || 'Todo',
                 dueDate: todo.dueDate,
                 boardId: todo.boardId,
                 userId: todo.userId,
                 labelId: todo.labelId
             });
-            return {
-                taskId: response.data.taskId,
-                title: response.data.title,
-                description: response.data.description,
-                status: response.data.status,
-                dueDate: response.data.dueDate,
-                createdAt: response.data.createdAt,
-                boardId: response.data.board?.boardId,
-                userId: response.data.user?.userId,
-                labelId: response.data.label?.labelId,
-                labelName: response.data.label?.name,
-                labelColor: response.data.label?.color
-            };
+            return this.getTodoById(response.data.taskId);
         } catch (error) {
             console.error('Error adding todo:', error.response?.data || error.message);
             throw error;
@@ -88,25 +76,16 @@ class TodoService {
 
     static async updateTodo(id, updates) {
         try {
-            const currentTodo = await this.getTodoById(id);
             const response = await this.axiosInstance.put(`/${id}`, {
-                ...currentTodo,
-                ...updates,
-                status: updates.status || currentTodo.status
+                title: updates.title,
+                description: updates.description,
+                status: updates.status,
+                dueDate: updates.dueDate,
+                boardId: updates.boardId,
+                userId: updates.userId,
+                labelId: updates.labelId
             });
-            return {
-                taskId: response.data.taskId,
-                title: response.data.title,
-                description: response.data.description,
-                status: response.data.status,
-                dueDate: response.data.dueDate,
-                createdAt: response.data.createdAt,
-                boardId: response.data.board?.boardId,
-                userId: response.data.user?.userId,
-                labelId: response.data.label?.labelId,
-                labelName: response.data.label?.name,
-                labelColor: response.data.label?.color
-            };
+            return this.getTodoById(id);
         } catch (error) {
             console.error('Error updating todo:', error.response?.data || error.message);
             throw error;
@@ -132,11 +111,11 @@ class TodoService {
                 status: todo.status,
                 dueDate: todo.dueDate,
                 createdAt: todo.createdAt,
-                boardId: todo.board?.boardId,
-                userId: todo.user?.userId,
-                labelId: todo.label?.labelId,
-                labelName: todo.label?.name,
-                labelColor: todo.label?.color
+                boardId: todo.boardId,
+                userId: todo.userId,
+                labelId: todo.labelId,
+                labelName: todo.labelName,
+                labelColor: todo.labelColor
             }));
         } catch (error) {
             console.error('Error fetching todos for board:', error.response?.data || error.message);

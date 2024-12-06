@@ -16,7 +16,7 @@ class LabelService {
             return response.data.map(label => ({
                 labelId: label.labelId,
                 name: label.name,
-                color: this.getColorForLabel(label.name)
+                color: label.color 
             }));
         } catch (error) {
             console.error('Error fetching labels:', error.response?.data || error.message);
@@ -31,7 +31,7 @@ class LabelService {
             return {
                 labelId: label.labelId,
                 name: label.name,
-                color: this.getColorForLabel(label.name)
+                color: label.color // Use color directly from database
             };
         } catch (error) {
             console.error('Error fetching label:', error.response?.data || error.message);
