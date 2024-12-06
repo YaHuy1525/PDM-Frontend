@@ -101,36 +101,81 @@ export class TodoApp {
             li.dataset.todoId = todo.taskId;
             li.className = todo.status === 'Done' ? 'completed' : '';
 
+            // Create task content container
+            const taskContent = document.createElement('div');
+            taskContent.className = 'task-content';
+
+            // Checkbox
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = todo.status === 'Done';
+            checkbox.addEventListener('change', async (e) => {
+                try {
+                    const newStatus = e.target.checked ? 'Done' : 'Pending';
+                    await todoApi.updateTodo(todo.taskId, { ...todo, status: newStatus });
+                    await this.loadAndRenderTodos();
+                } catch (error) {
+                    console.error('Error updating todo status:', error);
+                    this.showError('Failed to update todo status');
+                    e.target.checked = !e.target.checked; // Revert checkbox state
+                }
+            });
+            taskContent.appendChild(checkbox);
+
+            // Create title container to group title and label
+            const titleContainer = document.createElement('div');
+            titleContainer.className = 'title-container';
+
+            // Title
+            const title = document.createElement('span');
+            title.className = 'todo-title';
+            title.textContent = todo.title;
+            titleContainer.appendChild(title);
+
+            // Label/Priority next to title
+            if (todo.labelId) {
+                const label = document.createElement('span');
+                label.className = 'priority';
+                const labelData = this.labels.get(todo.labelId);
+                if (labelData) {
+                    label.style.backgroundColor = labelApi.getColorForLabel(labelData.name);
+                    label.textContent = labelData.name;
+                    titleContainer.appendChild(label);
+                }
+            }
+
+            taskContent.appendChild(titleContainer);
+
             // Date element
             if (todo.dueDate) {
                 const date = document.createElement('span');
                 date.className = 'due-date';
                 const formattedDate = format(new Date(todo.dueDate), 'yyyy-MM-dd');
                 date.textContent = formattedDate;
-                li.appendChild(date);
+                taskContent.appendChild(date);
             }
 
-            // Checkbox
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.checked = todo.status === 'Done';
-            li.appendChild(checkbox);
+            // Delete button
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'delete-todo-btn';
+            deleteBtn.innerHTML = 'X';
+            deleteBtn.title = 'Delete task';
+            deleteBtn.onclick = async (e) => {
+                e.stopPropagation();
+                if (confirm('Are you sure you want to delete this task?')) {
+                    try {
+                        await todoApi.deleteTodo(todo.taskId);
+                        await this.loadAndRenderTodos();
+                    } catch (error) {
+                        console.error('Error deleting todo:', error);
+                        this.showError('Failed to delete todo');
+                    }
+                }
+            };
 
-            // Title
-            const title = document.createElement('span');
-            title.className = 'todo-title';
-            title.textContent = todo.title;
-            li.appendChild(title);
-
-            // Label/Priority
-            if (todo.labelId) {
-                const label = document.createElement('span');
-                label.className = 'priority';
-                label.style.backgroundColor = todo.labelColor;
-                label.textContent = todo.labelName;
-                li.appendChild(label);
-            }
-
+            // Add task content and delete button to li
+            li.appendChild(taskContent);
+            li.appendChild(deleteBtn);
             ul.appendChild(li);
         });
 

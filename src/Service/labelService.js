@@ -87,11 +87,11 @@ class LabelService {
 
     static getColorForLabel(name) {
         const labelColors = {
-            'High': '#ff0000',    // Red
-            'Medium': '#ffff00',  // Yellow
-            'Low': '#00ff00'      // Green
+            'High': '#ff0000',
+            'Medium': '#ffd77a',
+            'Low': '#00ff00'
         };
-        return labelColors[name] || '#666666';
+        return labelColors[name];
     }
 }
 

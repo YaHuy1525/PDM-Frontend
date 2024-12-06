@@ -2,7 +2,7 @@ export class Label {
     constructor(
         id = null,
         name,
-        color = '#000000',
+        color,
         tasks = []
     ) {
         this.id = id;

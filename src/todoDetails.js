@@ -1,4 +1,5 @@
 import { todoApi } from './Service/todoService.js';
+import { Todo } from './Entities/todo.js';
 
 export function showNewTodoModal() {
     const modal = document.createElement('div');
@@ -106,18 +107,18 @@ export function showAddTodoModal(boards = []) {
     `;
     
     const boardOptions = boards.map(board => 
-        `<option value="${board.id}">${board.name}</option>`
+        `<option value="${board.boardId}">${board.name}</option>`
     ).join('');
     
     modal.innerHTML = `
         <div class="modal-content" style="background: white; padding: 20px; border-radius: 8px; width: 500px; max-width: 90%; max-height: 90vh; overflow-y: auto;">
-            <div class="form-group">
+                <div class="form-group">
                 <input type="text" class="title-input" placeholder="Enter title here..." style="width: 100%; font-size: 1.2em; border: none; outline: none; border-bottom: 1px solid #ddd; padding: 8px 0;">
-            </div>
-            <div class="form-group">
+                </div>
+                <div class="form-group">
                 <label><strong>Description:</strong></label>
                 <textarea class="description-input" placeholder="Describe your task here..." style="width: 100%; min-height: 60px; border: 1px solid #ddd; padding: 8px; resize: vertical;"></textarea>
-            </div>
+                </div>
             <div class="form-group" style="display: flex; gap: 20px;">
                 <div style="flex: 1;">
                     <label><strong>Due Date:</strong></label>
@@ -131,22 +132,23 @@ export function showAddTodoModal(boards = []) {
                         <option value="high">High</option>
                     </select>
                 </div>
-            </div>
-            <div class="form-group">
+                </div>
+                <div class="form-group">
                 <label><strong>Board:</strong></label>
                 <select class="board-input" style="width: 100%; padding: 4px;" required>
                     <option value="">Select a board</option>
                     ${boardOptions}
-                </select>
-            </div>
-            <div class="form-group">
+                    </select>
+                </div>
+                <div class="form-group">
                 <label><strong>Notes:</strong></label>
                 <textarea class="notes-input" placeholder="Add any additional notes here..." style="width: 100%; min-height: 60px; border: 1px solid #ddd; padding: 8px; resize: vertical;"></textarea>
-            </div>
+                </div>
             <div class="modal-buttons" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
                 <button class="save-btn" style="padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">Save</button>
                 <button class="cancel-btn" style="padding: 8px 16px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
-            </div>
+                </div>
+            </form>
         </div>
     `;
 
@@ -154,8 +156,8 @@ export function showAddTodoModal(boards = []) {
 
     const closeModal = () => modal.remove();
     const titleInput = modal.querySelector('.title-input');
-    const saveBtn = modal.querySelector('.save-btn');
     const cancelBtn = modal.querySelector('.cancel-btn');
+    const saveBtn = modal.querySelector('.save-btn');
     const boardInput = modal.querySelector('.board-input');
 
     modal.addEventListener('click', (e) => {
@@ -169,7 +171,15 @@ export function showAddTodoModal(boards = []) {
         const description = modal.querySelector('.description-input').value.trim();
         const dueDate = modal.querySelector('.date-input').value;
         const boardId = boardInput.value;
-        const notes = modal.querySelector('.notes-input').value.trim();
+        const priority = modal.querySelector('.priority-input').value;
+
+        console.log('Form values:', {
+            title,
+            description,
+            dueDate,
+            boardId,
+            priority
+        });
 
         if (!title) {
             alert('Title is required!');
@@ -182,14 +192,25 @@ export function showAddTodoModal(boards = []) {
         }
 
         try {
-            await todoApi.addTodo({
+            const labelId = getLabelId(priority);
+            console.log('Converted values:', {
+                boardId: parseInt(boardId),
+                labelId,
+                priority
+            });
+
+            const todoData = new Todo({
                 title,
                 description,
                 dueDate,
                 boardId: parseInt(boardId),
-                notes,
-                status: 'Ongoing'
+                labelId: parseInt(labelId),
+                userId: 1,
+                status: 'PENDING',
+                createdAt: new Date().toISOString()
             });
+            console.log('Final todo data:', todoData);
+            await todoApi.createTodo(todoData);
             closeModal();
             document.dispatchEvent(new CustomEvent('todosUpdated'));
         } catch (error) {
@@ -198,10 +219,18 @@ export function showAddTodoModal(boards = []) {
         }
     });
 
+    function getLabelId(priority) {
+        console.log('Converting priority:', priority);
+        const id = priority.toLowerCase() === 'high' ? 1 :
+                  priority.toLowerCase() === 'medium' ? 2 :
+                  priority.toLowerCase() === 'low' ? 3 : 3;
+        console.log('Converted to labelId:', id);
+        return id;
+    }
+
     titleInput.focus();
 }
 
 export function showTodoDetails(todoId) {
-    // Implementation for showing existing todo details
-    // This can be implemented later if needed
+
 }

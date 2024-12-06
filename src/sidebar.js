@@ -22,11 +22,17 @@ export function createSidebar() {
             
             <div class="boards-section">
                 <div class="dropdown-header">Boards</div>
-                <button class="add-board-btn">+ New Board</button>
+                <button class="add-board-btn">
+                    <i>+</i>
+                    <span>New Board</span>
+                </button>
                 <div class="boards-list"></div>
             </div>
             
-            <button class="add-todo-btn">+ Add Todo</button>
+            <button class="add-todo-btn">
+                <i>+</i>
+                <span>Add Todo</span>
+            </button>
         </div>
     `;
 
@@ -67,16 +73,24 @@ export function createSidebar() {
     const loadBoards = async () => {
         try {
             const boards = await boardApi.getAllBoards();
+            console.log('Boards loaded:', boards);
             const boardsList = sidebar.querySelector('.boards-list');
             boardsList.innerHTML = boards.map(board => `
                 <div class="menu-item board-item" data-board-id="${board.boardId}">
-                    ${board.name}
+                    <span class="board-name">${board.name}</span>
+                    <button class="delete-board-btn" data-board-id="${board.boardId}" title="Delete Board">
+                        <span style="color: #ff4d4d;">×</span>
+                    </button>
                 </div>
             `).join('');
 
             // Add click handlers for board items
             boardsList.querySelectorAll('.board-item').forEach(boardItem => {
-                boardItem.addEventListener('click', () => {
+                const boardName = boardItem.querySelector('.board-name');
+                const deleteBtn = boardItem.querySelector('.delete-board-btn');
+
+                // Board name click handler
+                boardName.addEventListener('click', () => {
                     document.querySelectorAll('.menu-item').forEach(item => {
                         item.classList.remove('active');
                     });
@@ -85,6 +99,19 @@ export function createSidebar() {
                     document.dispatchEvent(new CustomEvent('filterByBoard', {
                         detail: { boardId: parseInt(boardId) }
                     }));
+                });
+
+                deleteBtn.addEventListener('click', async (e) => {
+                    e.stopPropagation(); 
+                    if (confirm('Are you sure you want to delete this board and all its tasks?')) {
+                        try {
+                            const boardId = deleteBtn.dataset.boardId;
+                            await boardApi.deleteBoard(boardId);
+                            document.dispatchEvent(new CustomEvent('boardsUpdated'));
+                        } catch (error) {
+                            console.error('Failed to delete board:', error);
+                        }
+                    }
                 });
             });
         } catch (error) {
