@@ -95,7 +95,7 @@ class TodoService {
                 data: response.data
             });
             
-            const todosArray = [response.data];
+            const todosArray = Array.isArray(response.data) ? response.data : [response.data];
             return todosArray.filter(todo => todo !== null).map(todo => this._transformTodoResponse(todo));
         } catch (error) {
             console.error('Error fetching todos for board:', error.response?.data || error.message);
