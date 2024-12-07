@@ -122,7 +122,7 @@ export class TodoApp {
             });
             taskContent.appendChild(checkbox);
 
-            // Create title container to group title and label
+            // Create title container
             const titleContainer = document.createElement('div');
             titleContainer.className = 'title-container';
 
@@ -132,7 +132,7 @@ export class TodoApp {
             title.textContent = todo.title;
             titleContainer.appendChild(title);
 
-            // Label/Priority next to title
+            // Label
             if (todo.labelId) {
                 const label = document.createElement('span');
                 label.className = 'priority';
@@ -261,7 +261,7 @@ export class TodoApp {
                 } catch (error) {
                     console.error('Failed to update todo:', error);
                     this.showError('Failed to update todo: ' + error.message);
-                    // Revert checkbox state on error
+            
                     e.target.checked = !e.target.checked;
                 }
             }

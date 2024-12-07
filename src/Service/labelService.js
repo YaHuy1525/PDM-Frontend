@@ -31,7 +31,7 @@ class LabelService {
             return {
                 labelId: label.labelId,
                 name: label.name,
-                color: label.color // Use color directly from database
+                color: label.color 
             };
         } catch (error) {
             console.error('Error fetching label:', error.response?.data || error.message);

@@ -95,16 +95,13 @@ class TodoService {
                 data: response.data
             });
             
-            // Handle both array and single object responses
-            const todosArray = Array.isArray(response.data) ? response.data : [response.data];
+            const todosArray = [response.data];
             return todosArray.filter(todo => todo !== null).map(todo => this._transformTodoResponse(todo));
         } catch (error) {
             console.error('Error fetching todos for board:', error.response?.data || error.message);
             throw error;
         }
     }
-
-    // Helper method to transform todo response
     static _transformTodoResponse(todo) {
         return {
             taskId: todo.taskId,

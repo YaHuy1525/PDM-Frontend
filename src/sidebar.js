@@ -36,7 +36,7 @@ export function createSidebar() {
         </div>
     `;
 
-    // Make dropdowns clickable
+    // Make dropdowns clickable (Not working)
     const dropdowns = sidebar.querySelectorAll('.dropdown');
     dropdowns.forEach(dropdown => {
         const header = dropdown.querySelector('.dropdown-header');
@@ -45,7 +45,7 @@ export function createSidebar() {
         });
     });
 
-    // Toggle sidebar
+    // Toggle sidebar (Not needed)
     const toggleBtn = sidebar.querySelector('.toggle-btn');
     toggleBtn.addEventListener('click', () => {
         sidebar.classList.toggle('collapsed');
@@ -69,7 +69,7 @@ export function createSidebar() {
         showAddBoardModal();
     });
 
-    // Load and display boards
+    // Load boards
     const loadBoards = async () => {
         try {
             const boards = await boardApi.getAllBoards();
