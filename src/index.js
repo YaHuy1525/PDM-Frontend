@@ -3,7 +3,7 @@ import { createSidebar } from './sidebar.js';
 import { format, isToday, isThisWeek, isThisMonth } from 'date-fns';
 import { todoApi } from './Service/todoService.js';
 import { labelApi } from './Service/labelService.js';
-import { showNewTodoModal } from './todoDetails.js';
+import { showNewTodoModal, showEditTodoModal } from './todoDetails.js';
 
 export class TodoApp {
     constructor() {
@@ -176,6 +176,15 @@ export class TodoApp {
             // Add task content and delete button to li
             li.appendChild(taskContent);
             li.appendChild(deleteBtn);
+
+            // Edit mode
+            li.addEventListener('click', (e) => {
+                if (e.target === checkbox || e.target === deleteBtn || e.target.closest('.delete-todo-btn')) {
+                    return;
+                }
+                showEditTodoModal(todo);
+            });
+
             ul.appendChild(li);
         });
 
