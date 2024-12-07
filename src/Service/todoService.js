@@ -39,7 +39,6 @@ class TodoService {
                 description: todo.description || '',
                 status: todo.status || 'PENDING',
                 dueDate: todo.dueDate,
-                createdAt: todo.createdAt,
                 boardId: todo.boardId,
                 userId: todo.userId,
                 labelId: todo.labelId
@@ -50,7 +49,7 @@ class TodoService {
             const response = await this.axiosInstance.post('', requestData);
             console.log('Server response:', response.data);
             
-            return Todo.fromJson(response.data);
+            return this._transformTodoResponse(response.data);
         } catch (error) {
             console.error('Error creating todo:', error.response?.data || error.message);
             throw error;
@@ -61,14 +60,16 @@ class TodoService {
         try {
             const requestData = {
                 title: updates.title,
-                description: updates.description,
-                status: updates.status,
-                dueDate: updates.dueDate ? new Date(updates.dueDate).toISOString() : null,
+                description: updates.description || '',
+                status: updates.status || 'PENDING',
+                dueDate: updates.dueDate,
                 boardId: updates.boardId,
-                userId: updates.userId,
-                labelId: updates.labelId
+                labelId: updates.labelId,
+                userId: updates.userId
             };
 
+            console.log('Updating todo with data:', JSON.stringify(requestData, null, 2));
+            
             const response = await this.axiosInstance.put(`/${id}`, requestData);
             return this._transformTodoResponse(response.data);
         } catch (error) {
@@ -95,24 +96,43 @@ class TodoService {
                 data: response.data
             });
             
-            const todosArray = Array.isArray(response.data) ? response.data : [response.data];
+            let todosArray;
+            if (Array.isArray(response.data) ) {
+                todosArray = response.data;
+            }
+            else{
+                todosArray = [response.data];
+            }
             return todosArray.filter(todo => todo !== null).map(todo => this._transformTodoResponse(todo));
         } catch (error) {
             console.error('Error fetching todos for board:', error.response?.data || error.message);
             throw error;
         }
     }
+
+    static async getFilteredTodos(timeFilter) {
+        try {
+            const response = await this.axiosInstance.get('/filter', {
+                params: { timeFilter }
+            });
+            return response.data.map(todo => this._transformTodoResponse(todo));
+        } catch (error) {
+            console.error('Error fetching filtered todos:', error.response?.data || error.message);
+            throw error;
+        }
+    }
+
     static _transformTodoResponse(todo) {
         return {
             taskId: todo.taskId,
             title: todo.title,
             description: todo.description,
             status: todo.status,
-            dueDate: todo.dueDate,
-            createdAt: todo.createdAt,
-            boardId: todo.boardId,
-            userId: todo.userId,
-            labelId: todo.labelId,
+            dueDate: todo.dueDate ? new Date(todo.dueDate) : null,
+            createdAt: todo.createdAt ? new Date(todo.createdAt) : null,
+            boardId: todo.board ? todo.board.boardId : todo.boardId,
+            userId: todo.user ? todo.user.userId : todo.userId,
+            labelId: todo.label ? todo.label.labelId : todo.labelId,
             labelName: todo.labelName,
             labelColor: todo.labelColor
         };

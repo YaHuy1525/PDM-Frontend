@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - PDM</title>
+</head>
+<body>
+    <div class="container" id="container">
+        <div class="form-container sign-up">
+            <form action="register" method="post" class="register-form">
+                <h1 class="welcome">Create Account</h1>
+                <input type="text" id="fullName" placeholder="Full Name" required>
+                <input type="text" placeholder="UserName" required>
+                <input type="email" id="user-email" placeholder="Email" required>
+                <input type="password" id="user-pass" placeholder="Password" required>
+                <input type="password" id="confirmed-pass" placeholder="Confirmed Password" required>
+                <span id="error-message" class="error" style="display: none;">Password does not match</span>
+                <a href="#" id="term-of-use">Terms of use</a>
+                <button type="submit" class="submit">Sign Up</button>
+            </form>
+        </div>
+
+        <div class="form-container sign-in">
+            <form action="login" method="post" class="login-form">
+                <h1 class="welcome">Login</h1>
+                <input type="text" placeholder="UserName" required>
+                <input type="password" id="user-pass" placeholder="Password" required>
+                <a href="#" class="forgot-pass">Forgot your password?</a>
+                <button type="submit" class="submit">Login</button>
+            </form>
+        </div>
+
+        <div class="toggle-container">
+            <div class="toggle">
+                <div class="toggle-panel toggle-left">
+                    <h1>Welcome Back!</h1>
+                    <p>Enter your personal details to use all our features</p>
+                    <button class="hidden" id="login">Login</button>
+                </div>
+                <div class="toggle-panel toggle-right">
+                    <h1>Hello</h1>
+                    <p>Register with your personal details to use all our features</p>
+                    <button class="hidden" id="register">Sign Up</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

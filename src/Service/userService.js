@@ -10,19 +10,9 @@ class UserService {
         }
     });
 
-    static async getAllUsers() {
+    static async getUserByUsername(username) {
         try {
-            const response = await this.axiosInstance.get('');
-            return response.data;
-        } catch (error) {
-            console.error('Error fetching users:', error.response?.data || error.message);
-            throw error;
-        }
-    }
-
-    static async getUserById(id) {
-        try {
-            const response = await this.axiosInstance.get(`/${id}`);
+            const response = await this.axiosInstance.get(`/username/${username}`);
             return response.data;
         } catch (error) {
             console.error('Error fetching user:', error.response?.data || error.message);
@@ -30,18 +20,50 @@ class UserService {
         }
     }
 
-    static async createUser(user) {
+    static async login(username, password) {
+        try {
+            // Get user from database by username
+            const user = await this.getUserByUsername(username);
+            if (user && user.password === password) {
+                // Update last login time in database
+                const updatedUser = await this.updateUser(user.userId, {
+                    ...user,
+                    lastLogin: new Date()
+                });
+                
+                // Store minimal user info in localStorage
+                const userInfo = {
+                    userId: updatedUser.userId,
+                    username: updatedUser.username,
+                    fullname: updatedUser.fullname
+                };
+                localStorage.setItem('userToken', 'authenticated');
+                localStorage.setItem('userId', userInfo.userId);
+                localStorage.setItem('username', userInfo.username);
+                localStorage.setItem('fullname', userInfo.fullname);
+                
+                return userInfo;
+            }
+            throw new Error('Invalid credentials');
+        } catch (error) {
+            console.error('Error during login:', error.response?.data || error.message);
+            throw error;
+        }
+    }
+
+    static async register(user) {
         try {
             const response = await this.axiosInstance.post('', {
                 username: user.username,
                 password: user.password,
                 fullname: user.fullname,
                 email: user.email,
-                profilePicture: user.profilePicture
+                profilePicture: '',
+                tasks: []
             });
             return response.data;
         } catch (error) {
-            console.error('Error creating user:', error.response?.data || error.message);
+            console.error('Error creating user');
             throw error;
         }
     }
@@ -52,21 +74,12 @@ class UserService {
                 username: user.username,
                 fullname: user.fullname,
                 email: user.email,
-                profilePicture: user.profilePicture
+                profilePicture: user.profilePicture || '',
+                lastLogin: new Date()
             });
             return response.data;
         } catch (error) {
             console.error('Error updating user:', error.response?.data || error.message);
-            throw error;
-        }
-    }
-
-    static async deleteUser(id) {
-        try {
-            const response = await this.axiosInstance.delete(`/${id}`);
-            return response.data;
-        } catch (error) {
-            console.error('Error deleting user:', error.response?.data || error.message);
             throw error;
         }
     }
@@ -77,34 +90,6 @@ class UserService {
             return response.data;
         } catch (error) {
             console.error('Error fetching user tasks:', error.response?.data || error.message);
-            throw error;
-        }
-    }
-
-    static async login(username, password) {
-        try {
-            const response = await this.axiosInstance.post('/login', {
-                username,
-                password
-            });
-            return response.data;
-        } catch (error) {
-            console.error('Error during login:', error.response?.data || error.message);
-            throw error;
-        }
-    }
-
-    static async register(user) {
-        try {
-            const response = await this.axiosInstance.post('/register', {
-                username: user.username,
-                password: user.password,
-                fullname: user.fullname,
-                email: user.email
-            });
-            return response.data;
-        } catch (error) {
-            console.error('Error during registration:', error.response?.data || error.message);
             throw error;
         }
     }

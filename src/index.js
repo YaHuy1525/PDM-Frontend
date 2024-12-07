@@ -4,6 +4,8 @@ import { format, isToday, isThisWeek, isThisMonth } from 'date-fns';
 import { todoApi } from './Service/todoService.js';
 import { labelApi } from './Service/labelService.js';
 import { showNewTodoModal, showEditTodoModal } from './todoDetails.js';
+import { LoginPage } from './login';
+import './login.css';
 
 export class TodoApp {
     constructor() {
@@ -60,13 +62,15 @@ export class TodoApp {
             let todos;
             if (this.currentBoardId) {
                 todos = await todoApi.getTodosByBoard(this.currentBoardId);
+            } else if (this.currentFilter && this.currentFilter !== 'all') {
+                todos = await todoApi.getFilteredTodos(this.currentFilter);
             } else {
                 todos = await todoApi.getAllTodos();
             }
-            console.log('Todos loaded:', todos);
             
+            console.log('Todos loaded:', todos);
             this.todos = todos;
-            this.renderTodos(this.filterTodos(todos));
+            this.renderTodos(todos);
             console.log('Render complete');
         } catch (error) {
             console.error('Error loading data:', error);
@@ -285,6 +289,54 @@ export class TodoApp {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    const app = new TodoApp();
-});
+const token = localStorage.getItem('userToken');
+const userId = localStorage.getItem('userId');
+
+if (!token || !userId) {
+    document.body.innerHTML = `
+    <div class="container" id="container">
+        <div class="form-container sign-up">
+            <form action="register" method="post" class="register-form">
+                <h1 class="welcome">Create Account</h1>
+                <input type="text" id="username" placeholder="Username" required>
+                <input type="text" id="fullName" placeholder="Full Name" required>
+                <input type="email" id="user-email" placeholder="Email" required>
+                <input type="password" id="user-pass" placeholder="Password" required>
+                <input type="password" id="confirmed-pass" placeholder="Confirmed Password" required>
+                <span id="error-message" class="error" style="display: none;">Password does not match</span>
+                <a href="#" id="term-of-use">Terms of use</a>
+                <button type="submit" class="submit">Sign Up</button>
+            </form>
+        </div>
+
+        <div class="form-container sign-in">
+            <form action="login" method="post" class="login-form">
+                <h1 class="welcome">Login</h1>
+                <input type="text" id="username" placeholder="Username" required>
+                <input type="password" id="user-pass" placeholder="Password" required>
+                <a href="#" class="forgot-pass">Forgot your password?</a>
+                <button type="submit" class="submit">Login</button>
+            </form>
+        </div>
+
+        <div class="toggle-container">
+            <div class="toggle">                
+                <div class="toggle-panel toggle-left">
+                    <h1>Register</h1>
+                    <p>Register with your personal details NOWWW        Im not asking twice!!!!</p>
+                    <button class="hidden" id="login">Sign In</button>
+                </div>        
+                <div class="toggle-panel toggle-right">
+                    <h1>What is the other way to say "inside a log"??</h1>
+                    <p>Its LOGIN!!!!</p>
+                    <button class="hidden" id="register">switch</button>
+                </div>
+            </div>
+        </div>
+    </div>`;
+    new LoginPage();
+} else {
+    document.addEventListener('DOMContentLoaded', () => {
+        const app = new TodoApp();
+    });
+}

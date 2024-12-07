@@ -10,6 +10,13 @@ export async function showTodoModal(todo = null) {
     const boards = await boardApi.getAllBoards();
     const labels = await labelApi.getAllLabels();
 
+    // Format the date for the input field
+    let dueDateValue = '';
+    if (isEditMode && todo.dueDate) {
+        const dueDate = new Date(todo.dueDate);
+        dueDateValue = dueDate.toISOString().split('T')[0];
+    }
+
     modal.innerHTML = `
         <div class="modal-content">
             <form id="todo-form">
@@ -23,8 +30,7 @@ export async function showTodoModal(todo = null) {
                 <div class="flex-row">
                     <div class="form-group">
                         <label>Due Date</label>
-                        <input type="date" name="dueDate" 
-                               value="${isEditMode && todo.dueDate ? todo.dueDate.split('T')[0] : ''}">
+                        <input type="date" name="dueDate" value="${dueDateValue}">
                     </div>
                     
                     <div class="form-group">

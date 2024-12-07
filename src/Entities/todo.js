@@ -1,21 +1,34 @@
 // todo.js
 export class Todo {
-  constructor(data = {}) {
-    if (typeof data === 'object') {
-      this.taskId = data.taskId || null;
-      this.title = data.title || '';
-      this.description = data.description || '';
-      this.status = data.status || 'Ongoing';
-      this.dueDate = data.dueDate || null;
-      this.createdAt = data.createdAt || new Date().toISOString();
-      this.boardId = data.boardId || null;
-      this.userId = data.userId || null;
-      this.labelId = data.labelId || null;
-    }
+  constructor(
+    title, 
+    description = '', 
+    status = 'Ongoing', 
+    dueDate = null, 
+    createdAt = new Date(), 
+    boardId = null, 
+    userId = null, 
+    labelId = null
+  ) {
+    this.title = title;
+    this.description = description;
+    this.status = status;
+    
+    // Ensure dueDate is a Date object or null
+    this.dueDate = dueDate instanceof Date ? dueDate : 
+                   (dueDate ? new Date(dueDate) : null);
+    
+    // Ensure createdAt is a Date object
+    this.createdAt = createdAt instanceof Date ? createdAt : 
+                     (createdAt ? new Date(createdAt) : new Date());
+    
+    this.boardId = boardId;
+    this.userId = userId;
+    this.labelId = labelId;
   }
 
   static fromJson(json) {
-    const todo = new Todo(json);
+    const todo = new Todo(json.title, json.description, json.status, json.dueDate, json.createdAt, json.boardId, json.userId, json.labelId);
     // Add label info from response if available
     todo.labelName = json.labelName;
     todo.labelColor = json.labelColor;
@@ -34,5 +47,15 @@ export class Todo {
       userId: this.userId || 1,
       labelId: this.labelId
     };
+  }
+
+  // Helper method to format date for display
+  formatDueDate() {
+    return this.dueDate ? this.dueDate.toLocaleDateString() : 'No due date';
+  }
+
+  // Helper method to check if task is overdue
+  isOverdue() {
+    return this.dueDate && this.dueDate < new Date() && this.status !== 'Done';
   }
 }

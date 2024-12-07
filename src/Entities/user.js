@@ -25,7 +25,7 @@ export class User {
         return new User(
             json.userId,
             json.username,
-            null, // We don't store password in frontend
+            json.password,
             json.fullname,
             json.email,
             json.profilePicture,
