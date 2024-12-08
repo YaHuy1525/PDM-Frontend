@@ -13,14 +13,10 @@ export class Todo {
     this.title = title;
     this.description = description;
     this.status = status;
-    
-    // Ensure dueDate is a Date object or null
-    this.dueDate = dueDate instanceof Date ? dueDate : 
-                   (dueDate ? new Date(dueDate) : null);
-    
-    // Ensure createdAt is a Date object
-    this.createdAt = createdAt instanceof Date ? createdAt : 
-                     (createdAt ? new Date(createdAt) : new Date());
+
+    this.dueDate = dueDate ? new Date(dueDate) : new Date();
+
+    this.createdAt =createdAt ? new Date(createdAt) : new Date();
     
     this.boardId = boardId;
     this.userId = userId;
