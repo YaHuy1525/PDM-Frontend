@@ -287,10 +287,10 @@ export class TodoApp {
 
         document.addEventListener('boardsUpdated', async () => {
             await this.refreshBoards();
-            const existingSidebar = document.querySelector('.sidebar');
-            if (existingSidebar) {
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar) {
                 const newSidebar = createSidebar();
-                existingSidebar.replaceWith(newSidebar);
+                sidebar.replaceWith(newSidebar);
             }
             this.loadAndRenderTodos();
         });
