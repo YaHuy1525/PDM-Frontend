@@ -125,12 +125,10 @@ export async function showTodoModal(todo = null) {
     };
 }
 
-// Helper function to show add todo modal
 export function showAddTodoModal() {
     showTodoModal();
 }
 
-// Helper function to show edit todo modal
 export function showEditTodoModal(todo) {
     showTodoModal(todo);
 }

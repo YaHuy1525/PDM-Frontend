@@ -8,11 +8,10 @@ export class LoginPage {
         this.loginForm = document.querySelector('.login-form');
         this.registerForm = document.querySelector('.register-form');
         
-        this.initializeEventListeners();
+        this.initEventListeners();
     }
 
-    initializeEventListeners() {
-        // Switch between login and register forms
+    initEventListeners() {
         this.registerBtn.addEventListener('click', () => {
             this.container.classList.add("active");
         });
@@ -35,7 +34,6 @@ export class LoginPage {
                 localStorage.setItem('userId', response.userId);
                 localStorage.setItem('username', response.username);
                 localStorage.setItem('fullname', response.fullname);
-                // Redirect to main page
                 window.location.href = '/';
             } catch (error) {
                 alert('Login failed: ' + (error.message || 'Invalid credentials'));
@@ -47,7 +45,7 @@ export class LoginPage {
         const confirmedpass = document.getElementById('confirmed-pass');
         const error = document.getElementById('error-message');
 
-        confirmedpass?.addEventListener('input', () => {
+        confirmedpass.addEventListener('input', () => {
             if(password.value !== confirmedpass.value && confirmedpass.value !== '') {
                 error.style.display = 'block';
             } else {
@@ -55,7 +53,6 @@ export class LoginPage {
             }
         });
 
-        // Handle register form submission
         this.registerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('username').value;

@@ -3,14 +3,16 @@ import { createSidebar } from './sidebar.js';
 import { format, isToday, isThisWeek, isThisMonth } from 'date-fns';
 import { todoApi } from './Service/todoService.js';
 import { labelApi } from './Service/labelService.js';
-import { showNewTodoModal, showEditTodoModal } from './todoDetails.js';
+import { showEditTodoModal } from './todoDetails.js';
 import { LoginPage } from './login';
+import { boardApi } from './Service/boardService.js'; // Import boardApi
 import './login.css';
 
 export class TodoApp {
     constructor() {
         this.todos = [];
         this.labels = new Map();
+        this.boards = [];
         this.currentFilter = 'all';
         this.currentBoardId = null;
         this.initializeApp();
@@ -19,6 +21,9 @@ export class TodoApp {
     async initializeApp() {
         try {
             console.log('Initializing app...');
+            this.boards = await boardApi.getAllBoards(); // Load boards
+            console.log('Boards loaded:', this.boards);
+
             const mainContent = document.querySelector('main');
             if (!mainContent) {
                 throw new Error('Main content element not found');
@@ -30,20 +35,17 @@ export class TodoApp {
                 document.body.insertBefore(sidebar, mainContent);
             }
 
-            // Create todo list container if it doesn't exist
             let todoListContainer = document.querySelector('.todo-list-container');
-            if (!todoListContainer) {
-                todoListContainer = document.createElement('div');
-                todoListContainer.className = 'todo-list-container';
-                mainContent.appendChild(todoListContainer);
-            }
+            todoListContainer = document.createElement('div');
+            todoListContainer.className = 'todo-list-container';
+            mainContent.appendChild(todoListContainer);
+        
             
             this.setupEventListeners();
             await this.loadAndRenderTodos();
             console.log('App initialization complete');
         } catch (error) {
             console.error('Failed to initialize app:', error);
-            this.showError('Failed to initialize app: ' + error.message);
         }
     }
 
@@ -74,7 +76,6 @@ export class TodoApp {
             console.log('Render complete');
         } catch (error) {
             console.error('Error loading data:', error);
-            this.showError('Failed to load data: ' + error.message);
         }
     }
 
@@ -84,11 +85,22 @@ export class TodoApp {
 
         todoListContainer.innerHTML = '';
         
+        // Create header container
+        const headerContainer = document.createElement('div');
+        headerContainer.className = 'header-container';
+        
         // Add title
         const title = document.createElement('h1');
-        title.textContent = 'Todo List';
-        todoListContainer.appendChild(title);
-        
+        title.textContent = this.getBoardTitle();
+        const description = document.createElement('p');
+        const boardDescription = this.getBoardDescription();
+        if (boardDescription) {
+            description.textContent = boardDescription;
+            title.appendChild(description);
+        }
+        headerContainer.appendChild(title);
+        todoListContainer.appendChild(headerContainer);
+
         if (!todos || todos.length === 0) {
             const emptyMessage = document.createElement('div');
             emptyMessage.className = 'empty-message';
@@ -115,13 +127,13 @@ export class TodoApp {
             checkbox.checked = todo.status === 'Done';
             checkbox.addEventListener('change', async (e) => {
                 try {
-                    const newStatus = e.target.checked ? 'Done' : 'Pending';
+                    const newStatus = e.target.checked ? 'Done' : 'Ongoing';
+                    //update todo with new status
                     await todoApi.updateTodo(todo.taskId, { ...todo, status: newStatus });
                     await this.loadAndRenderTodos();
                 } catch (error) {
                     console.error('Error updating todo status:', error);
-                    this.showError('Failed to update todo status');
-                    e.target.checked = !e.target.checked; // Revert checkbox state
+                    e.target.checked = !e.target.checked;
                 }
             });
             taskContent.appendChild(checkbox);
@@ -163,7 +175,6 @@ export class TodoApp {
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'delete-todo-btn';
             deleteBtn.innerHTML = 'X';
-            deleteBtn.title = 'Delete task';
             deleteBtn.onclick = async (e) => {
                 e.stopPropagation();
                 if (confirm('Are you sure you want to delete this task?')) {
@@ -172,27 +183,46 @@ export class TodoApp {
                         await this.loadAndRenderTodos();
                     } catch (error) {
                         console.error('Error deleting todo:', error);
-                        this.showError('Failed to delete todo');
                     }
                 }
             };
-
-            // Add task content and delete button to li
             li.appendChild(taskContent);
             li.appendChild(deleteBtn);
-
-            // Edit mode
             li.addEventListener('click', (e) => {
                 if (e.target === checkbox || e.target === deleteBtn || e.target.closest('.delete-todo-btn')) {
                     return;
                 }
                 showEditTodoModal(todo);
             });
-
             ul.appendChild(li);
         });
 
         todoListContainer.appendChild(ul);
+    }
+
+    getBoardTitle() {
+        if (this.currentBoardId) {
+            const board = this.boards.find(b => b.boardId === this.currentBoardId);
+            return board.name;
+        }
+
+        switch (this.currentFilter) {
+            case 'today':
+                return "Today's Tasks";
+            case 'thisWeek':
+                return 'This Week\'s Tasks';
+            case 'thisMonth':
+                return 'This Month\'s Tasks';
+            default:
+                return 'All Tasks';
+        }
+    }
+
+    getBoardDescription() {
+        if (this.currentBoardId && this.boards) {
+            const board = this.boards.find(b => b.boardId === this.currentBoardId);
+            return board.description;
+        }
     }
 
     filterTodos(todos) {
@@ -215,44 +245,48 @@ export class TodoApp {
         }
     }
 
+    async refreshBoards() {
+        try {
+            this.boards = await boardApi.getAllBoards();
+            console.log('Boards refreshed:', this.boards);
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
     setupEventListeners() {
-        // Event delegation for sidebar menu items
         document.addEventListener('click', async (e) => {
             const menuItem = e.target.closest('.menu-item');
             if (menuItem) {
                 const timeFilter = menuItem.dataset.time;
                 const boardId = menuItem.dataset.boardId;
 
-                // Update active menu item
                 document.querySelectorAll('.menu-item').forEach(item => {
                     item.classList.remove('active');
                 });
                 menuItem.classList.add('active');
 
-                // Update filter and re-render
                 if (timeFilter) {
                     this.currentFilter = timeFilter;
                     this.currentBoardId = null;
                 } else if (boardId) {
+                    await this.refreshBoards(); // Refresh boards before setting currentBoardId
                     this.currentBoardId = parseInt(boardId);
                     this.currentFilter = 'all';
                 } else if (menuItem.classList.contains('all')) {
                     this.currentFilter = 'all';
                     this.currentBoardId = null;
                 }
-
                 await this.loadAndRenderTodos();
             }
         });
 
-        // Listen for todo updates
         document.addEventListener('todosUpdated', () => {
             this.loadAndRenderTodos();
         });
 
-        // Listen for board updates
-        document.addEventListener('boardsUpdated', () => {
-            // Refresh the sidebar when boards are updated
+        document.addEventListener('boardsUpdated', async () => {
+            await this.refreshBoards();
             const existingSidebar = document.querySelector('.sidebar');
             if (existingSidebar) {
                 const newSidebar = createSidebar();
@@ -261,7 +295,6 @@ export class TodoApp {
             this.loadAndRenderTodos();
         });
 
-        // Handle todo item changes
         document.addEventListener('change', async (e) => {
             if (e.target.type === 'checkbox' && e.target.closest('li')) {
                 const li = e.target.closest('li');
@@ -270,10 +303,9 @@ export class TodoApp {
 
                 try {
                     await todoApi.updateTodo(todoId, { status });
-                    li.className = status === 'Done' ? 'completed' : '';
+                    li.className = status === 'Done' ? 'completed':'';
                 } catch (error) {
                     console.error('Failed to update todo:', error);
-                    this.showError('Failed to update todo: ' + error.message);
             
                     e.target.checked = !e.target.checked;
                 }
@@ -281,12 +313,6 @@ export class TodoApp {
         });
     }
 
-    showError(message) {
-        const todoListContainer = document.querySelector('.todo-list-container');
-        if (todoListContainer) {
-            todoListContainer.innerHTML = `<div class="error-message">${message}</div>`;
-        }
-    }
 }
 
 const token = localStorage.getItem('userToken');
@@ -320,12 +346,12 @@ if (!token || !userId) {
         </div>
 
         <div class="toggle-container">
-            <div class="toggle">                
+            <div class="toggle">
                 <div class="toggle-panel toggle-left">
                     <h1>Register</h1>
                     <p>Register with your personal details NOWWW        Im not asking twice!!!!</p>
                     <button class="hidden" id="login">Sign In</button>
-                </div>        
+                </div>
                 <div class="toggle-panel toggle-right">
                     <h1>What is the other way to say "inside a log"??</h1>
                     <p>Its LOGIN!!!!</p>

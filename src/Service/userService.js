@@ -22,21 +22,20 @@ class UserService {
 
     static async login(username, password) {
         try {
-            // Get user from database by username
             const user = await this.getUserByUsername(username);
             if (user && user.password === password) {
-                // Update last login time in database
+                // Update users last login
                 const updatedUser = await this.updateUser(user.userId, {
                     ...user,
                     lastLogin: new Date()
                 });
                 
-                // Store minimal user info in localStorage
                 const userInfo = {
                     userId: updatedUser.userId,
                     username: updatedUser.username,
                     fullname: updatedUser.fullname
                 };
+                //Stored user data in local storage for auto login next time
                 localStorage.setItem('userToken', 'authenticated');
                 localStorage.setItem('userId', userInfo.userId);
                 localStorage.setItem('username', userInfo.username);

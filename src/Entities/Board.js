@@ -67,10 +67,12 @@ const BoardComponent = () => {
 
   const handleToggleComplete = async (todo) => {
     try {
-      await todoService.updateTodo(todo.id, {
-        ...todo,
-        completed: !todo.completed
-      });
+      const updatedTodo = {
+        id: todo.id,
+        title: todo.title,
+        completed: !todo.completed,
+      };
+      await todoService.updateTodo(todo.id, updatedTodo);
       fetchTodos();
     } catch (error) {
       message.error('Failed to update todo');

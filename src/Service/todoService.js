@@ -37,7 +37,7 @@ class TodoService {
             const requestData = {
                 title: todo.title,
                 description: todo.description || '',
-                status: todo.status || 'PENDING',
+                status: todo.status || '',
                 dueDate: todo.dueDate,
                 boardId: todo.boardId,
                 userId: todo.userId,
@@ -61,7 +61,7 @@ class TodoService {
             const requestData = {
                 title: updates.title,
                 description: updates.description || '',
-                status: updates.status || 'PENDING',
+                status: updates.status || '',
                 dueDate: updates.dueDate,
                 boardId: updates.boardId,
                 labelId: updates.labelId,
