@@ -76,7 +76,7 @@ export class LoginPage {
                 alert('Registration successful! Please login.');
                 this.container.classList.remove("active");
             } catch (error) {
-                alert('Registration failed: ' + (error.response?.data?.message || error.message || 'Please try again'));
+                alert('Registration failed: ');
             }
         });
     }

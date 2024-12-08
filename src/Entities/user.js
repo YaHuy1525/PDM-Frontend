@@ -31,7 +31,7 @@ export class User {
             json.profilePicture,
             json.dateJoined,
             json.lastLogin,
-            json.tasks?.map(task => Todo.fromJson(task)) || []
+            json.tasks.map(task => Todo.fromJson(task)) || []
         );
     }
 

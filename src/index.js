@@ -350,7 +350,7 @@ if (!token || !userId) {
                 <div class="toggle-panel toggle-left">
                     <h1>Register</h1>
                     <p>Register with your personal details NOWWW        Im not asking twice!!!!</p>
-                    <button class="hidden" id="login">Sign In</button>
+                    <button class="hidden" id="login">Switch</button>
                 </div>
                 <div class="toggle-panel toggle-right">
                     <h1>What is the other way to say "inside a log"??</h1>
