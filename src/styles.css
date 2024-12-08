@@ -247,28 +247,7 @@ li span.due-date {
   padding: 2px 4px;
   margin-right: 8px;
   border-radius: 4px;
-}
-
-/* Priority/Label Styles */
-.priority[style*="background-color: #ff0000"],
-.priority[style*="background-color: #ff4d4d"] {
-  border-radius: 3px;
-  background-color: #ff4d4d !important;
-  color: white !important;
-}
-
-.priority[style*="background-color: #ffd77a"] {
-  border-radius: 3px;
-  background-color: #ffd77a !important;
-  color: #333 !important;
-}
-
-.priority[style*="background-color: #00ff00"],
-.priority[style*="background-color: #28a745"] {
-  border-radius: 3px;
-  background-color: #28a745 !important;
-  color: white !important;
-}
+} 
 
 /* Completed todo style */
 .todo-list li.completed .todo-title {
